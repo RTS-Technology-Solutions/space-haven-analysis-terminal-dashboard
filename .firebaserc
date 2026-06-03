@@ -1,5 +1,14 @@
 {
   "projects": {
-    "default": "space-haven-analysis-terminal"
+    "default": "rts-labs-f3981"
+  },
+  "targets": {
+    "rts-labs-f3981": {
+      "hosting": {
+        "space-haven-analysis-terminal": [
+          "space-haven-analysis-terminal"
+        ]
+      }
+    }
   }
 }

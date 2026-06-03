@@ -44,7 +44,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/dash" element={
             <>
-              <Header currentView="dashboard" onViewChange={() => {}} />
+              <Header />
               <main className="main-content">
                 <DashboardPage />
               </main>
@@ -52,7 +52,7 @@ function App() {
           } />
           <Route path="/data" element={
             <>
-              <Header currentView="datasheets" onViewChange={() => {}} />
+              <Header />
               <main className="main-content">
                 <DataPage />
               </main>
