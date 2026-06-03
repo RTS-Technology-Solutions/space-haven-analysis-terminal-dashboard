@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import CookieConsent from './components/CookieConsent'
+import FeedbackModal from './components/FeedbackModal'
 import Home from './pages/Home'
 import DashboardPage from './pages/DashboardPage'
 import DataPage from './pages/DataPage'
@@ -21,6 +22,8 @@ function AnalyticsTracker() {
 }
 
 function App() {
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
+
   // Initialize analytics if user previously accepted cookies
   useEffect(() => {
     const consent = localStorage.getItem('cookie-consent')
@@ -48,12 +51,13 @@ function App() {
       <div className="app-container">
         <AnalyticsTracker />
         <CookieConsent onAccept={handleCookieAccept} onDecline={handleCookieDecline} />
+        <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
         
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dash" element={
             <>
-              <Header />
+              <Header onFeedbackClick={() => setIsFeedbackOpen(true)} />
               <main className="main-content">
                 <DashboardPage />
               </main>
@@ -61,7 +65,7 @@ function App() {
           } />
           <Route path="/data" element={
             <>
-              <Header />
+              <Header onFeedbackClick={() => setIsFeedbackOpen(true)} />
               <main className="main-content">
                 <DataPage />
               </main>

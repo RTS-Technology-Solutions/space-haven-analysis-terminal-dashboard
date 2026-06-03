@@ -61,6 +61,18 @@
   font-size: var(--font-xs);
 }
 
+.feedback-btn {
+  background: rgba(0, 247, 255, 0.05);
+  border-color: var(--accent-cyan);
+  transition: all var(--transition-base);
+}
+
+.feedback-btn:hover {
+  background: rgba(0, 247, 255, 0.15);
+  box-shadow: 0 0 15px rgba(0, 247, 255, 0.3);
+  transform: translateY(-2px);
+}
+
 @media (max-width: 768px) {
   .terminal-header {
     flex-direction: column;
