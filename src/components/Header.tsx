@@ -1,12 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import './Header.css'
 
-interface HeaderProps {
-  currentView: 'dashboard' | 'datasheets'
-  onViewChange: (view: 'dashboard' | 'datasheets') => void
-}
-
-export default function Header({}: HeaderProps) {
+export default function Header() {
   const location = useLocation()
   
   return (
