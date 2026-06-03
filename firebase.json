@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "target": "space-haven-analysis-terminal",
     "public": "dist",
     "ignore": [
       "firebase.json",
