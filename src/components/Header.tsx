@@ -2,7 +2,11 @@ import { Link, useLocation } from 'react-router-dom'
 import analytics from '../utils/analytics'
 import './Header.css'
 
-export default function Header() {
+interface HeaderProps {
+  onFeedbackClick: () => void
+}
+
+export default function Header({ onFeedbackClick }: HeaderProps) {
   const location = useLocation()
   
   const handleRTSClick = () => {
@@ -11,6 +15,11 @@ export default function Header() {
   
   const handleNavClick = (page: string) => {
     analytics.trackEvent('Navigation', 'Click', `Header Nav - ${page}`)
+  }
+
+  const handleFeedback = () => {
+    analytics.trackEvent('Feedback', 'Open Modal', 'Header Feedback Button')
+    onFeedbackClick()
   }
   
   return (
@@ -40,6 +49,13 @@ export default function Header() {
             DATA SHEETS
           </Link>
         </nav>
+        <button 
+          className="btn-terminal btn-terminal-sm feedback-btn"
+          onClick={handleFeedback}
+          title="Share feedback or report issues"
+        >
+          💬 FEEDBACK
+        </button>
         <a 
           href="https://rtsts.tech?utm_source=shat-dashboard&utm_medium=referral&utm_campaign=header-button" 
           target="_blank" 
