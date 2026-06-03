@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Space Haven themed icon - pixel style rocket/station -->
+  <rect fill="#0a0e1a" width="64" height="64"/>
+  
+  <!-- Terminal border -->
+  <rect fill="none" stroke="#00f7ff" stroke-width="2" x="4" y="4" width="56" height="56"/>
+  
+  <!-- Corner brackets -->
+  <path fill="none" stroke="#00f7ff" stroke-width="2" d="M 4 4 L 4 12 M 4 4 L 12 4"/>
+  <path fill="none" stroke="#00f7ff" stroke-width="2" d="M 60 4 L 60 12 M 60 4 L 52 4"/>
+  <path fill="none" stroke="#00f7ff" stroke-width="2" d="M 4 60 L 4 52 M 4 60 L 12 60"/>
+  <path fill="none" stroke="#00f7ff" stroke-width="2" d="M 60 60 L 60 52 M 60 60 L 52 60"/>
+  
+  <!-- Pixel spaceship/station icon -->
+  <rect fill="#00f7ff" x="28" y="16" width="8" height="8"/>
+  <rect fill="#00f7ff" x="20" y="24" width="24" height="8"/>
+  <rect fill="#00f7ff" x="16" y="32" width="32" height="8"/>
+  <rect fill="#00ff88" x="24" y="36" width="4" height="4"/>
+  <rect fill="#00ff88" x="36" y="36" width="4" height="4"/>
+  <rect fill="#00f7ff" x="20" y="40" width="24" height="8"/>
+  
+  <!-- Text hint -->
+  <text x="32" y="57" fill="#00f7ff" font-family="monospace" font-size="6" text-anchor="middle">SHAT</text>
+</svg>

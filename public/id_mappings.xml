@@ -1,0 +1,940 @@
+<mappings>
+    <skills>
+        <skill>
+            <id>1</id><name>Construct</name>
+        </skill>
+        <skill>
+            <id>2</id><name>Mining</name>
+        </skill>
+        <skill>
+            <id>3</id><name>Botany</name>
+        </skill>
+        <skill>
+            <id>4</id><name>Construction</name>
+        </skill>
+        <skill>
+            <id>5</id><name>Industry</name>
+        </skill>
+        <skill>
+            <id>6</id><name>Medical</name>
+        </skill>
+        <skill>
+            <id>7</id><name>Gunner</name>
+        </skill>
+        <skill>
+            <id>8</id><name>Shielding</name>
+        </skill>
+        <skill>
+            <id>9</id><name>Operations</name>
+        </skill>
+        <skill>
+            <id>10</id><name>Weapons</name>
+        </skill>
+        <skill>
+            <id>12</id><name>Carry</name>
+        </skill>
+        <skill>
+            <id>13</id><name>Unknown (unused)</name>
+        </skill>
+        <skill>
+            <id>14</id><name>Navigation</name>
+        </skill>
+        <skill>
+            <id>16</id><name>Research</name>
+        </skill>
+        <skill>
+            <id>22</id><name>Piloting</name>
+        </skill>
+        <skill>
+            <id>210</id><name>Agility</name>
+        </skill>
+        <skill>
+            <id>212</id><name>Directing</name>
+        </skill>
+        <skill>
+            <id>213</id><name>Processing</name>
+        </skill>
+        <skill>
+            <id>214</id><name>Combat Operations</name>
+        </skill>
+    </skills>
+
+    <traits>
+        <trait>
+            <id>191</id><name>Hero</name>
+        </trait>
+        <trait>
+            <id>655</id><name>Wimp</name>
+        </trait>
+        <trait>
+            <id>656</id><name>Clumsy</name>
+        </trait>
+        <trait>
+            <id>1034</id><name>Moody (formerly 'Suicidal')</name>
+        </trait>
+        <trait>
+            <id>1035</id><name>Smart</name>
+        </trait>
+        <trait>
+            <id>1036</id><name>Bloodlust</name>
+        </trait>
+        <trait>
+            <id>1037</id><name>Antisocial</name>
+        </trait>
+        <trait>
+            <id>1038</id><name>Needy</name>
+        </trait>
+        <trait>
+            <id>1039</id><name>Fast Learner</name>
+        </trait>
+        <trait>
+            <id>1040</id><name>Lazy</name>
+        </trait>
+        <trait>
+            <id>1041</id><name>Hard Working</name>
+        </trait>
+        <trait>
+            <id>1042</id><name>Psychopath</name>
+        </trait>
+        <trait>
+            <id>1043</id><name>Peace Loving</name>
+        </trait>
+        <trait>
+            <id>1044</id><name>Iron Willed</name>
+        </trait>
+        <trait>
+            <id>1045</id><name>Spacefarer</name>
+        </trait>
+        <trait>
+            <id>1046</id><name>Confident</name>
+        </trait>
+        <trait>
+            <id>1047</id><name>Neurotic</name>
+        </trait>
+        <trait>
+            <id>1048</id><name>Charming</name>
+        </trait>
+        <trait>
+            <id>1533</id><name>Iron Stomach</name>
+        </trait>
+        <trait>
+            <id>1534</id><name>Nyctophilia</name>
+        </trait>
+        <trait>
+            <id>1535</id><name>Minimalist</name>
+        </trait>
+        <trait>
+            <id>1560</id><name>Talkative</name>
+        </trait>
+        <trait>
+            <id>1562</id><name>Gourmand</name>
+        </trait>
+        <trait>
+            <id>2082</id><name>Alien Lover</name>
+        </trait>
+    </traits>
+
+    <occupations>
+        <occupation>
+            <id>1763</id><name>Police</name>
+        </occupation>
+        <occupation>
+            <id>1764</id><name>Nurse</name>
+        </occupation>
+        <occupation>
+            <id>1765</id><name>Doctor</name>
+        </occupation>
+        <occupation>
+            <id>1766</id><name>Sales</name>
+        </occupation>
+        <occupation>
+            <id>1767</id><name>Cook</name>
+        </occupation>
+        <occupation>
+            <id>1766</id><name>Sales</name>
+        </occupation>
+        <occupation>
+            <id>1768</id><name>Material Mover</name>
+        </occupation>
+        <occupation>
+            <id>1769</id><name>Engineer</name>
+        </occupation>
+        <occupation>
+            <id>1770</id><name>Security Guard</name>
+        </occupation>
+        <occupation>
+            <id>1771</id><name>Construction Laborer</name>
+        </occupation>
+        <occupation>
+            <id>1772</id><name>Sheriff</name>
+        </occupation>
+        <occupation>
+            <id>1773</id><name>Lawyer</name>
+        </occupation>
+        <occupation>
+            <id>1774</id><name>Medical Assistant</name>
+        </occupation>
+        <occupation>
+            <id>1775</id><name>Bartender</name>
+        </occupation>
+        <occupation>
+            <id>1776</id><name>Teacher</name>
+        </occupation>
+        <occupation>
+            <id>1777</id><name>Computer Programmer</name>
+        </occupation>
+        <occupation>
+            <id>1778</id><name>Welder</name>
+        </occupation>
+        <occupation>
+            <id>1779</id><name>Firefighter</name>
+        </occupation>
+        <occupation>
+            <id>1780</id><name>Telemarketer</name>
+        </occupation>
+        <occupation>
+            <id>1781</id><name>Lab Tech</name>
+        </occupation>
+        <occupation>
+            <id>1782</id><name>Chemical Engineer</name>
+        </occupation>
+        <occupation>
+            <id>1783</id><name>Airline Pilot</name>
+        </occupation>
+        <occupation>
+            <id>1784</id><name>Fighter Pilot</name>
+        </occupation>
+        <occupation>
+            <id>1785</id><name>Driller</name>
+        </occupation>
+        <occupation>
+            <id>1786</id><name>Mining Tech</name>
+        </occupation>
+        <occupation>
+            <id>1787</id><name>Geologist</name>
+        </occupation>
+        <occupation>
+            <id>1788</id><name>Farmer</name>
+        </occupation>
+        <occupation>
+            <id>1789</id><name>Scientist</name>
+        </occupation>
+        <occupation>
+            <id>1790</id><name>Blacksmith</name>
+        </occupation>
+        <occupation>
+            <id>1791</id><name>Navigator</name>
+        </occupation>
+        <occupation>
+            <id>1792</id><name>Florist</name>
+        </occupation>
+    </occupations>
+
+    <characters>
+        <character>
+            <id>89 (and id="188" for attributes/traits)</id><name>Human/Android</name>
+        </character>
+        <character>
+            <id>2874</id><name>Logistics Bot</name>
+        </character>
+        <character>
+            <id>2888</id><name>Salvage Bot</name>
+        </character>
+        <character>
+            <id>3657</id><name>Fly Bot</name>
+        </character>
+        <character>
+            <id>3682</id><name>Chimp Bot</name>
+        </character>
+        <character>
+            <id>994</id><name>Crawler Egg</name>
+        </character>
+        <character>
+            <id>989</id><name>Crawler</name>
+        </character>
+        <character>
+            <id>1429</id><name>Hauler Egg</name>
+        </character>
+        <character>
+            <id>1427</id><name>Hauler</name>
+        </character>
+        <character>
+            <id>1426</id><name>Standard Hive</name>
+        </character>
+        <character>
+            <id>4108</id><name>Alien Parasite (Check for secondary ID with actual monster data)</name>
+        </character>
+    </characters>
+
+    <crafts>
+        <craft>
+            <id>20</id><name>Shuttle</name>
+        </craft>
+        <craft>
+            <id>39</id><name>Miner</name>
+        </craft>
+        <craft>
+            <id>2786</id><name>Fighter</name>
+        </craft>
+        <craft>
+            <id>3491</id><name>Builder</name>
+        </craft>
+        <craft>
+            <id>3641</id><name>Drone Sentry</name>
+        </craft>
+        <craft>
+            <id>3642</id><name>Drone Fighter</name>
+        </craft>
+        <craft>
+            <id>3644</id><name>Drone Scout</name>
+        </craft>
+        <craft>
+            <id>3668</id><name>Drone Dropship</name>
+        </craft>
+        <craft>
+            <id>3683</id><name>Infester "spacecraft"</name>
+        </craft>
+        <craft>
+            <id>3750</id><name>Large Asteroid 1</name>
+        </craft>
+        <craft>
+            <id>3754</id><name>Large Asteroid 2</name>
+        </craft>
+        <craft>
+            <id>3751</id><name>Medium Asteroid 1</name>
+        </craft>
+        <craft>
+            <id>3755</id><name>Medium Asteroid 2</name>
+        </craft>
+        <craft>
+            <id>3752</id><name>Small Asteroid 1</name>
+        </craft>
+        <craft>
+            <id>3753</id><name>Small Asteroid 2</name>
+        </craft>
+    </crafts>
+
+    <explosions>
+        <explosion>
+            <id>2187</id><name>Rocket Turret projectile</name>
+        </explosion>
+        <explosion>
+            <id>2195</id><name>Energy Turret projectile</name>
+        </explosion>
+        <explosion>
+            <id>3261</id><name>Autoturret projectile</name>
+        </explosion>
+        <explosion>
+            <id>3765</id><name>Small Asteroid "attack"</name>
+        </explosion>
+        <explosion>
+            <id>3768</id><name>Medium Asteroid "attack"</name>
+        </explosion>
+        <explosion>
+            <id>3769</id><name>Large Asteroid "attack"</name>
+        </explosion>
+        <explosion>
+            <id>3680</id><name>Drone anti-ship weapon</name>
+        </explosion>
+        <explosion>
+            <id>3681</id><name>Fighter anti-ship weapon</name>
+        </explosion>
+        <explosion>
+            <id>4041</id><name>Breaching Charge main component</name>
+        </explosion>
+        <explosion>
+            <id>2886</id><name>Breaching Charge secondary component (on other side of door, larger)</name>
+        </explosion>
+    </explosions>
+
+    <items>
+        <item>
+            <id>15</id><name>Roots&amp;Vegetables</name>
+        </item>
+        <item>
+            <id>16</id><name>Water</name>
+        </item>
+        <item>
+            <id>34</id><name>Power (Power resource)</name>
+        </item>
+        <item>
+            <id>40</id><name>Ice</name>
+        </item>
+        <item>
+            <id>63</id><name>O2 (Atmospheric resource)</name>
+        </item>
+        <item>
+            <id>64</id><name>CO2 (Atmospheric resource)</name>
+        </item>
+        <item>
+            <id>71</id><name>Biomass</name>
+        </item>
+        <item>
+            <id>73</id><name>Heat (Atmospheric resource)</name>
+        </item>
+        <item>
+            <id>77</id><name>Smoke (Atmospheric resource)</name>
+        </item>
+        <item>
+            <id>127</id><name>Rubble (Funnily enough, there's an unused vanilla process (4105) for recycling Rubble)</name>
+        </item>
+        <item>
+            <id>158</id><name>Energium</name>
+        </item>
+        <item>
+            <id>162</id><name>Infrablock</name>
+        </item>
+        <item>
+            <id>169</id><name>Noble Metals</name>
+        </item>
+        <item>
+            <id>170</id><name>Carbon</name>
+        </item>
+        <item>
+            <id>171</id><name>Raw Chemicals</name>
+        </item>
+        <item>
+            <id>172</id><name>Hyperium</name>
+        </item>
+        <item>
+            <id>173</id><name>Electronic Components</name>
+        </item>
+        <item>
+            <id>174</id><name>Energy Rod</name>
+        </item>
+        <item>
+            <id>175</id><name>Plastic</name>
+        </item>
+        <item>
+            <id>176</id><name>Chemicals</name>
+        </item>
+        <item>
+            <id>177</id><name>Fabric</name>
+        </item>
+        <item>
+            <id>178</id><name>Hyperfuel</name>
+        </item>
+        <item>
+            <id>179</id><name>Processed Food (Stats change based on contents)</name>
+        </item>
+        <item>
+            <id>184</id><name>Base Metals</name>
+        </item>
+        <item>
+            <id>706</id><name>Fruit</name>
+        </item>
+        <item>
+            <id>707</id><name>Artificial Meat</name>
+        </item>
+        <item>
+            <id>712</id><name>Space Food (Always superior to processed food, but lower eat priority)</name>
+        </item>
+        <item>
+            <id>930</id><name>Tech Block</name>
+        </item>
+        <item>
+            <id>971</id><name>Hazardous Gas (Atmospheric resource)</name>
+        </item>
+        <item>
+            <id>984</id><name>Monster Meat</name>
+        </item>
+        <item>
+            <id>985</id><name>Human Meat (Contraband: Military Alliance)</name>
+        </item>
+        <item>
+            <id>1397</id><name>Food Group (UI Element, not obtainable)</name>
+        </item>
+        <item>
+            <id>1445</id><name>Build Tools</name>
+        </item>
+        <item>
+            <id>1759</id><name>Hull Block</name>
+        </item>
+        <item>
+            <id>1858</id><name>Credits (Trade resource, not obtainable as item)</name>
+        </item>
+        <item>
+            <id>1873</id><name>Infra Scrap</name>
+        </item>
+        <item>
+            <id>1874</id><name>Soft Scrap</name>
+        </item>
+        <item>
+            <id>1886</id><name>Hull Scrap</name>
+        </item>
+        <item>
+            <id>1919</id><name>Energy Block</name>
+        </item>
+        <item>
+            <id>1920</id><name>Super Block</name>
+        </item>
+        <item>
+            <id>1921</id><name>Soft Block</name>
+        </item>
+        <item>
+            <id>1922</id><name>Steel Plate</name>
+        </item>
+        <item>
+            <id>1924</id><name>Optronics</name>
+        </item>
+        <item>
+            <id>1925</id><name>Quantronics</name>
+        </item>
+        <item>
+            <id>1926</id><name>Energy Cell</name>
+        </item>
+        <item>
+            <id>1932</id><name>Fiber</name>
+        </item>
+        <item>
+            <id>1946</id><name>Tech Scrap</name>
+        </item>
+        <item>
+            <id>1947</id><name>Energy Scrap</name>
+        </item>
+        <item>
+            <id>1954</id><name>Human Corpse (2 Human Meat, 1 Human Organs, non-player)</name>
+        </item>
+        <item>
+            <id>2053</id><name>Medical Supplies</name>
+        </item>
+        <item>
+            <id>2058</id><name>IV Fluid</name>
+        </item>
+        <item>
+            <id>2452</id><name>Water Vapor (Atmospheric resource)</name>
+        </item>
+        <item>
+            <id>2475</id><name>Fertilizer</name>
+        </item>
+        <item>
+            <id>2657</id><name>Nuts</name>
+        </item>
+        <item>
+            <id>2715</id><name>Explosive Ammunition</name>
+        </item>
+        <item>
+            <id>3077</id><name>Hauler Corpse (2 Monster Meat, 1 Alien Organ)</name>
+        </item>
+        <item>
+            <id>3079</id><name>Human Corpse (2 Human Meat, 1 Human Organs, player)</name>
+        </item>
+        <item>
+            <id>3196</id><name>High Capacity Power (Power resource)</name>
+        </item>
+        <item>
+            <id>3366</id><name>Mild Alcohol</name>
+        </item>
+        <item>
+            <id>3378</id><name>Hops</name>
+        </item>
+        <item>
+            <id>3419</id><name>Augmentation Parts</name>
+        </item>
+        <item>
+            <id>3512</id><name>Exotic Ore</name>
+        </item>
+        <item>
+            <id>3513</id><name>Basic Ore</name>
+        </item>
+        <item>
+            <id>3711</id><name>Evolving Alien Hive Corpse (1 Monster Meat)</name>
+        </item>
+        <item>
+            <id>3712</id><name>Alien Hive Corpse (1 Monster Meat)</name>
+        </item>
+        <item>
+            <id>4027</id><name>Alien Organ</name>
+        </item>
+        <item>
+            <id>4028</id><name>Human Organ (Contraband: Military Alliance)</name>
+        </item>
+        <item>
+            <id>4078</id><name>Parasite Corpse (1 Monster Meat)</name>
+        </item>
+        <item>
+            <id>4106</id><name>Infester Corpse (1 Monster Meat, 1 Organ)</name>
+        </item>
+    </items>
+
+    <processes>
+        <process>
+            <id>17</id><name>Roots&amp;Vegetables Growth Cycle (Any planter)</name>
+        </process>
+        <process>
+            <id>35</id><name>Energy Rod to High Capacity Power (X1 Generator, 200% efficiency, TODO)</name>
+        </process>
+        <process>
+            <id>41</id><name>Ice to Water</name>
+        </process>
+        <process>
+            <id>62</id><name>Water to O2 (Oxygen Generator, TODO)</name>
+        </process>
+        <process>
+            <id>65</id><name>Carbon to CO2 (Dioxite Generator, TODO)</name>
+        </process>
+        <process>
+            <id>66</id><name>CO2 to Carbon (Gas Scrubber, TODO)</name>
+        </process>
+        <process>
+            <id>74</id><name>(null)</name>
+        </process>
+        <process>
+            <id>78</id><name>Smoke to Carbon/Raw Chemicals (Gas Scrubber, TODO)</name>
+        </process>
+        <process>
+            <id>181</id><name>Metal Refinery Process Group</name>
+        </process>
+        <process>
+            <id>183</id><name>Steel Plate/Electronics to Infrablock</name>
+        </process>
+        <process>
+            <id>447</id><name>(null) (Might be used to assign an item to Item Fabricator)</name>
+        </process>
+        <process>
+            <id>703</id><name>(null) (Food processor hook?)</name>
+        </process>
+        <process>
+            <id>704</id><name>Fruit Growth Cycle (Any planter)</name>
+        </process>
+        <process>
+            <id>705</id><name>Artificial Meat Growth Cycle (Any planter)</name>
+        </process>
+        <process>
+            <id>913</id><name>Nothing to O2 (Plant subprocess? For filling NPC ships? Unused.)</name>
+        </process>
+        <process>
+            <id>914</id><name>(null)</name>
+        </process>
+        <process>
+            <id>959</id><name>Steel Plate/Electronics/Optronics to Tech Block</name>
+        </process>
+        <process>
+            <id>960</id><name>Energy Refinery Process Group</name>
+        </process>
+        <process>
+            <id>962</id><name>Metal Refinery Process Group</name>
+        </process>
+        <process>
+            <id>963</id><name>Chemical Refinery Process Group</name>
+        </process>
+        <process>
+            <id>964</id><name>Energium to Energy Rod</name>
+        </process>
+        <process>
+            <id>965</id><name>Hyperium to Hyperfuel</name>
+        </process>
+        <process>
+            <id>966</id><name>Noble/Base Metals to Electronics</name>
+        </process>
+        <process>
+            <id>983</id><name>Hazardous Gas to Raw Chemicals (Gas Scrubber, TODO)</name>
+        </process>
+        <process>
+            <id>1442</id><name>Nothing to Power (Solar Panel???, 50% efficiency)</name>
+        </process>
+        <process>
+            <id>1443</id><name>Nothing to Power (Solar Panel, 5% efficiency)</name>
+        </process>
+        <process>
+            <id>1446</id><name>Infrablock to Build Tools (Tool Facility)</name>
+        </process>
+        <process>
+            <id>1760</id><name>Steel Plate to Hull Block</name>
+        </process>
+        <process>
+            <id>1876</id><name>Soft Scrap to Soft Block</name>
+        </process>
+        <process>
+            <id>1877</id><name>Infra Scrap to Infrablock/Electronics</name>
+        </process>
+        <process>
+            <id>1879</id><name>Recycler Process Group</name>
+        </process>
+        <process>
+            <id>1883</id><name>Energy Rod to High Capacity Power (X2 Generator, 300% efficiency, TODO)</name>
+        </process>
+        <process>
+            <id>1884</id><name>Energy Rod to High Capacity Power (X3 Generator, 400% efficiency, TODO)</name>
+        </process>
+        <process>
+            <id>1887</id><name>Hull Scrap to Hull Block/Steel Plates</name>
+        </process>
+        <process>
+            <id>1927</id><name>Steel Plate/Fabric to Soft Block</name>
+        </process>
+        <process>
+            <id>1928</id><name>Steel Plate/Electronics/Energy Cell to Energy Block</name>
+        </process>
+        <process>
+            <id>1929</id><name>Tech Block/Energy Block/Quantronics to Superblock (Unused)</name>
+        </process>
+        <process>
+            <id>1930</id><name>Electronics/Energy Rod to Energy Cell</name>
+        </process>
+        <process>
+            <id>1931</id><name>Carbon/Base Metals to Steel Plates</name>
+        </process>
+        <process>
+            <id>1934</id><name>Microweaver Process Group</name>
+        </process>
+        <process>
+            <id>1935</id><name>Fiber to Fabric</name>
+        </process>
+        <process>
+            <id>1936</id><name>Assembler Process Group</name>
+        </process>
+        <process>
+            <id>1937</id><name>Advanced Assembler Process Group</name>
+        </process>
+        <process>
+            <id>1938</id><name>Unknown Process Group (for super blocks, unused)</name>
+        </process>
+        <process>
+            <id>1939</id><name>Optronics Fabricator Process Group</name>
+        </process>
+        <process>
+            <id>1940</id><name>Unknown Process Group (for quantronics, unused)</name>
+        </process>
+        <process>
+            <id>1941</id><name>Optronics Fabricator Process Group (deprecated? certainly unused.)</name>
+        </process>
+        <process>
+            <id>1942</id><name>Electronics/Chemicals to Optronics</name>
+        </process>
+        <process>
+            <id>1943</id><name>Optronics/Energy Cell to Quantronics (Unused)</name>
+        </process>
+        <process>
+            <id>1944</id><name>Fiber Growth Cycle (Any planter)</name>
+        </process>
+        <process>
+            <id>1948</id><name>Energy Scrap to Energy Block/Energium/Infrablock</name>
+        </process>
+        <process>
+            <id>1949</id><name>Tech Scrap to Tech Block/Optronics/Infrablock</name>
+        </process>
+        <process>
+            <id>2011</id><name>Raw Chemicals to Chemicals</name>
+        </process>
+        <process>
+            <id>2012</id><name>Water Purifier Process Group</name>
+        </process>
+        <process>
+            <id>2054</id><name>Chemicals/Fabric/Plastic to Medical Supplies</name>
+        </process>
+        <process>
+            <id>2059</id><name>Chemicals/Water/Fruit to IV Fluid</name>
+        </process>
+        <process>
+            <id>2416</id><name>Carbon/Chemicals to Plastic</name>
+        </process>
+        <process>
+            <id>2453</id><name>Water Vapor to Water (Water Collector, TODO)</name>
+        </process>
+        <process>
+            <id>2463</id><name>Fruit to Water/Fertilizer/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2464</id><name>Composter Process Group</name>
+        </process>
+        <process>
+            <id>2466</id><name>Crawler Corpse to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2467</id><name>Biomass to Water/Fertilizer/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2468</id><name>Fiber to Water/Fertilizer/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2469</id><name>Human Meat to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2470</id><name>Monster Meat to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2471</id><name>Processed Food to Water/Fertilizer/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2472</id><name>Roots&amp;Vegetables to Water/Fertilizer/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2473</id><name>Space Food to Water/Fertilizer/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2474</id><name>Human Corpse to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2476</id><name>Chemicals to Fertilizer</name>
+        </process>
+        <process>
+            <id>2477</id><name>Nothing to Water/Biomass</name>
+        </process>
+        <process>
+            <id>2478</id><name>Artificial Meat to Water/Fertilizer/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>2651</id><name>Water/Biomass to bad Processed Food (Algae Dispenser)</name>
+        </process>
+        <process>
+            <id>2658</id><name>Nuts Growth Cycle (Any planter)</name>
+        </process>
+        <process>
+            <id>2693</id><name>Energium to High Capacity Power (Energium, 100% efficiency, TODO)</name>
+        </process>
+        <process>
+            <id>2727</id><name>Chemicals/Steel Plates to Explosive Ammunition</name>
+        </process>
+        <process>
+            <id>2897</id><name>Nuts to Water/Fertilizer/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>3078</id><name>Hauler Corpse to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>3080</id><name>Human (player) Corpse to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>3197</id><name>Energium to Power (Energium Generator, 100% efficiency)</name>
+        </process>
+        <process>
+            <id>3198</id><name>Energy Rod to Power (X1 Generator, 150% efficiency)</name>
+        </process>
+        <process>
+            <id>3365</id><name>Water/Hops to Mild Alcohol (Beer Machine)</name>
+        </process>
+        <process>
+            <id>3377</id><name>Water/Hops to better Mild Alcohol (Beer Machine, why?)</name>
+        </process>
+        <process>
+            <id>3379</id><name>Hops Growth Cycle (Any planter)</name>
+        </process>
+        <process>
+            <id>3468</id><name>Plastic/Electronics/Chemicals to Augmentation Parts</name>
+        </process>
+        <process>
+            <id>3483</id><name>Energy Rod to Power (X2 Generator, 200% efficiency)</name>
+        </process>
+        <process>
+            <id>3484</id><name>Energy Rod to Power (X3 Generator, 300% efficiency)</name>
+        </process>
+        <process>
+            <id>3715</id><name>Alien Hive Corpse to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>3716</id><name>Evolving Alien Hive Corpse to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>3926</id><name>Medical Supplies to ISP (Medical Cabinet)</name>
+        </process>
+        <process>
+            <id>4029</id><name>Alien Organs to Alien Enzyme</name>
+        </process>
+        <process>
+            <id>4038</id><name>Medical Supplies to Painkillers (Medical Cabinet)</name>
+        </process>
+        <process>
+            <id>4039</id><name>Medical Supplies to Bandages (Medical Cabinet)</name>
+        </process>
+        <process>
+            <id>4094</id><name>Infrablock to Steel Plates/Electronics (70/70% efficiency)</name>
+        </process>
+        <process>
+            <id>4095</id><name>Soft Block to Steel Plates/Fabric (70/70% efficiency)</name>
+        </process>
+        <process>
+            <id>4096</id><name>Hull Block to Steel Plates (70% efficiency)</name>
+        </process>
+        <process>
+            <id>4087</id><name>Energy Block to Infrablock/Energy Cell (30/70% efficiency)</name>
+        </process>
+        <process>
+            <id>4098</id><name>Tech Block to Infrablock/Optronics (30/70% efficiency)</name>
+        </process>
+        <process>
+            <id>4099</id><name>Energy Rod to Energium (70% efficiency)</name>
+        </process>
+        <process>
+            <id>4100</id><name>Hyperfuel to Hyperium (70% efficiency)</name>
+        </process>
+        <process>
+            <id>4105</id><name>Rubble to Steel Plates (Unused)</name>
+        </process>
+        <process>
+            <id>4066</id><name>Alien Organs to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>4067</id><name>Human Organs to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>4083</id><name>Parasite Corpse to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+        <process>
+            <id>4107</id><name>Infester Corpse to Water/Raw Chemicals/Carbon (Composter)</name>
+        </process>
+    </processes>
+
+    <modules>
+        <module>
+            <id>-2</id><name>Insulated Outer Hull Plating</name>
+        </module>
+        <module>
+            <id>0</id><name>Unbuilt Hull Canvas Space</name>
+        </module>
+        <module>
+            <id>25</id><name>Standard Interior Wall Partition</name>
+        </module>
+        <module>
+            <id>43</id><name>X1 Airlock Module</name>
+        </module>
+        <module>
+            <id>44</id><name>X2 Airlock Module</name>
+        </module>
+        <module>
+            <id>46</id><name>Hyperdrive Generator</name>
+        </module>
+        <module>
+            <id>47</id><name>Navigation Console Module</name>
+        </module>
+        <module>
+            <id>51</id><name>Oxygen Generator Facility</name>
+        </module>
+        <module>
+            <id>76</id><name>Wall Power Node</name>
+        </module>
+        <module>
+            <id>90</id><name>Bio-Vessel / Basic Hydroponics Bed</name>
+        </module>
+        <module>
+            <id>115</id><name>Small Storage Pod</name>
+        </module>
+        <module>
+            <id>120</id><name>Water Purifier / Ice Processor</name>
+        </module>
+        <module>
+            <id>122</id><name>Metal Refinery Module</name>
+        </module>
+        <module>
+            <id>123</id><name>Electronic Fabricator</name>
+        </module>
+        <module>
+            <id>185</id><name>Shield Core Module</name>
+        </module>
+        <module>
+            <id>200</id><name>Energy Laser Turret</name>
+        </module>
+        <module>
+            <id>206</id><name>Rocket / Missile Turret Module</name>
+        </module>
+        <module>
+            <id>263</id><name>Standard Bunk/Bed Module</name>
+        </module>
+        <module>
+            <id>307</id><name>Medical Center Bed Unit</name>
+        </module>
+        <module>
+            <id>319</id><name>Leisure Arcade Console</name>
+        </module>
+    </modules>
+</mappings>

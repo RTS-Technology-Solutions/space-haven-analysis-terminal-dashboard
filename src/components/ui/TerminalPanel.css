@@ -1,0 +1,28 @@
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--terminal-border);
+}
+
+.panel-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin: 0;
+}
+
+.panel-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.panel-content {
+  color: var(--text-primary);
+}

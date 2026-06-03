@@ -1,0 +1,297 @@
+/* Terminal Panel Component */
+.terminal-panel {
+  background: var(--terminal-bg-panel);
+  border: 2px solid var(--terminal-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+/* Corner Brackets */
+.terminal-panel::before,
+.terminal-panel::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--accent-cyan);
+}
+
+.terminal-panel::before {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.terminal-panel::after {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Terminal Panel with Glow */
+.terminal-panel-glow {
+  box-shadow: 
+    inset 0 0 100px rgba(0, 247, 255, 0.03),
+    0 0 20px rgba(0, 247, 255, 0.1),
+    0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Scanline Effect */
+.terminal-scanlines {
+  position: relative;
+}
+
+.terminal-scanlines::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 24, 41, 0) 50%,
+    rgba(0, 0, 0, 0.1) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Terminal Button */
+.btn-terminal {
+  background: transparent;
+  border: 2px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-family: 'JetBrains Mono', monospace;
+  padding: var(--space-sm) var(--space-lg);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-terminal:hover {
+  background: var(--accent-cyan);
+  color: var(--terminal-bg-dark);
+  box-shadow: 0 0 20px rgba(0, 247, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-terminal:active {
+  transform: translateY(0);
+}
+
+.btn-terminal:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Button Variants */
+.btn-terminal.btn-success {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.btn-terminal.btn-success:hover {
+  background: var(--accent-green);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+}
+
+.btn-terminal.btn-danger {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+.btn-terminal.btn-danger:hover {
+  background: var(--accent-red);
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+}
+
+.btn-terminal.btn-warning {
+  border-color: var(--accent-yellow);
+  color: var(--accent-yellow);
+}
+
+.btn-terminal.btn-warning:hover {
+  background: var(--accent-yellow);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+/* Pixel Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--terminal-bg-dark);
+  border: 1px solid var(--terminal-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent-cyan);
+  transition: width var(--transition-base);
+  position: relative;
+  box-shadow: 0 0 10px rgba(0, 247, 255, 0.5);
+}
+
+/* Animated Progress Fill */
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progress-shine 2s infinite;
+}
+
+@keyframes progress-shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Status Indicator Dot */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: var(--space-sm);
+  animation: pulse 2s infinite;
+}
+
+.status-dot.status-ok {
+  background: var(--accent-green);
+  box-shadow: 0 0 8px var(--accent-green);
+}
+
+.status-dot.status-warning {
+  background: var(--accent-yellow);
+  box-shadow: 0 0 8px var(--accent-yellow);
+}
+
+.status-dot.status-critical {
+  background: var(--accent-red);
+  box-shadow: 0 0 8px var(--accent-red);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Blinking Cursor */
+.cursor-blink {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: var(--accent-cyan);
+  animation: blink 1s step-end infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Pixel Icon Base */
+.pixel-icon {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Terminal Header */
+.terminal-header {
+  background: var(--terminal-bg-overlay);
+  border-bottom: 2px solid var(--terminal-border);
+  padding: var(--space-lg) var(--space-xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Data Table */
+.terminal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-sm);
+}
+
+.terminal-table th {
+  background: var(--terminal-bg-overlay);
+  color: var(--accent-cyan);
+  text-align: left;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--terminal-border);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.terminal-table td {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--terminal-border);
+}
+
+.terminal-table tr:nth-child(even) {
+  background: rgba(42, 54, 80, 0.2);
+}
+
+.terminal-table tr:hover {
+  background: rgba(0, 247, 255, 0.1);
+}
+
+/* Tooltip */
+.terminal-tooltip {
+  position: absolute;
+  background: var(--terminal-bg-panel);
+  border: 2px solid var(--accent-cyan);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-xs);
+  box-shadow: 0 0 20px rgba(0, 247, 255, 0.3);
+  z-index: 1000;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--terminal-border);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Pixel Flicker Animation */
+@keyframes pixel-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.98; }
+}
+
+.flicker {
+  animation: pixel-flicker 3s infinite;
+}

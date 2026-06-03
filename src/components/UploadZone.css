@@ -1,0 +1,45 @@
+.upload-zone {
+  border: 3px dashed var(--terminal-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2xl);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  background: var(--terminal-bg-panel);
+}
+
+.upload-zone:hover {
+  border-color: var(--accent-cyan);
+  background: var(--terminal-bg-overlay);
+  box-shadow: 0 0 30px rgba(0, 247, 255, 0.1);
+}
+
+.upload-zone.dragging {
+  border-color: var(--accent-cyan);
+  background: var(--terminal-bg-overlay);
+  box-shadow: 0 0 40px rgba(0, 247, 255, 0.3);
+  transform: scale(1.02);
+}
+
+.upload-zone.validating {
+  border-color: var(--accent-yellow);
+  pointer-events: none;
+}
+
+.upload-icon {
+  font-size: 4rem;
+  margin-bottom: var(--space-md);
+  filter: grayscale(1) brightness(1.5);
+  image-rendering: pixelated;
+}
+
+.upload-text {
+  font-size: var(--font-lg);
+  margin-bottom: var(--space-sm);
+  color: var(--text-primary);
+}
+
+.upload-hint {
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+}
