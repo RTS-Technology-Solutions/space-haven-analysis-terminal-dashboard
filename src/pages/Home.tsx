@@ -42,7 +42,6 @@ export default function Home() {
               EXPLORE DATA
               <span className="btn-arrow">→</span>
             </Link>
-            </Link>
           </div>
         </div>
       </div>
