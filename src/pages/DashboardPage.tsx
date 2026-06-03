@@ -14,7 +14,7 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-page">
-      <ComingSoon targetDate="July 1, 2026 00:00:00" />
+      <ComingSoon targetDate="June 19, 2026 00:00:00" />
       
       {/* Preview content (blurred behind coming soon) */}
       <div style={{ filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none' }}>
