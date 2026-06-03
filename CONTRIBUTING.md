@@ -62,7 +62,7 @@ git clone https://github.com/YOUR-USERNAME/space-haven-analysis-terminal-dashboa
 cd space-haven-analysis-terminal-dashboard
 
 # 3. Add upstream remote
-git remote add upstream https://github.com/pssnyder/space-haven-analysis-terminal-dashboard.git
+git remote add upstream https://github.com/RTS-Technology-Solutions/space-haven-analysis-terminal-dashboard.git
 
 # 4. Install dependencies
 npm install
