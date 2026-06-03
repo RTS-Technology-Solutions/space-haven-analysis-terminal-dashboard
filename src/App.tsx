@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import DashboardPage from './pages/DashboardPage'
 import DataPage from './pages/DataPage'
 import analytics from './utils/analytics'
+import './utils/easterEgg' // 💩 The true origin story lives here
 import './App.css'
 
 function AnalyticsTracker() {
