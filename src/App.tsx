@@ -21,13 +21,19 @@ function AnalyticsTracker() {
 }
 
 function App() {
-  const handleCookieAccept = () => {
-    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID
-    if (gaId) {
-      analytics.initialize(gaId)
+  // Initialize analytics if user previously accepted cookies
+  useEffect(() => {
+    const consent = localStorage.getItem('cookie-consent')
+    if (consent === 'accepted') {
+      analytics.initialize()
       analytics.enable()
-      analytics.trackPageView(window.location.pathname)
     }
+  }, [])
+
+  const handleCookieAccept = () => {
+    analytics.initialize() // Uses hardcoded GA ID from analytics.ts
+    analytics.enable()
+    analytics.trackPageView(window.location.pathname)
   }
 
   const handleCookieDecline = () => {
