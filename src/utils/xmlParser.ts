@@ -17,7 +17,12 @@ export async function loadIdMappings(): Promise<ParsedMappings> {
       
       if (!categoryNode) return items
 
-      const itemNodes = categoryNode.querySelectorAll(`${categoryName.slice(0, -1)}`)
+      // Handle irregular plurals: 'processes' → 'process' (not 'processe')
+      const singularName = categoryName === 'processes' 
+        ? 'process' 
+        : categoryName.slice(0, -1)
+
+      const itemNodes = categoryNode.querySelectorAll(singularName)
       
       itemNodes.forEach(node => {
         const id = node.querySelector('id')?.textContent || ''

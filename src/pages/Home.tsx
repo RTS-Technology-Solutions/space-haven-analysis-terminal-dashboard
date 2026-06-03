@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import analytics from '../utils/analytics'
 import './Home.css'
 
 export default function Home() {
@@ -25,11 +26,19 @@ export default function Home() {
           </p>
 
           <div className="hero-cta">
-            <Link to="/dash" className="btn-terminal btn-terminal-lg">
+            <Link 
+              to="/dash" 
+              className="btn-terminal btn-terminal-lg"
+              onClick={() => analytics.trackEvent('Navigation', 'Click', 'Hero CTA - Launch Dashboard')}
+            >
               LAUNCH DASHBOARD
               <span className="btn-arrow">→</span>
             </Link>
-            <Link to="/data" className="btn-terminal btn-terminal-outline btn-terminal-lg">
+            <Link 
+              to="/data" 
+              className="btn-terminal btn-terminal-outline btn-terminal-lg"
+              onClick={() => analytics.trackEvent('Navigation', 'Click', 'Hero CTA - Explore Data')}
+            >
               EXPLORE DATA
               <span className="btn-arrow">→</span>
             </Link>
@@ -55,7 +64,11 @@ export default function Home() {
               Browse 270+ game object ID mappings, reverse-engineered by the community.
               Searchable and downloadable.
             </p>
-            <Link to="/data" className="feature-link">
+            <Link 
+              to="/data" 
+              className="feature-link"
+              onClick={() => analytics.trackEvent('Navigation', 'Click', 'Feature Card - Data Dictionary')}
+            >
               Available Now →
             </Link>
           </div>
@@ -127,7 +140,12 @@ export default function Home() {
             <span className="text-glow">S.H.A.T.</span> Command Center
           </div>
           <div className="footer-links">
-            <a href="https://rtsts.tech" target="_blank" rel="noopener noreferrer">
+            <a 
+              href="https://rtsts.tech?utm_source=shat-dashboard&utm_medium=referral&utm_campaign=footer-link" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={() => analytics.trackOutboundLink('https://rtsts.tech', 'Footer RTS Link')}
+            >
               Powered by RTS Technology & Solutions
             </a>
           </div>

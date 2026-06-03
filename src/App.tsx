@@ -34,10 +34,13 @@ function App() {
     analytics.initialize() // Uses hardcoded GA ID from analytics.ts
     analytics.enable()
     analytics.trackPageView(window.location.pathname)
+    analytics.trackEvent('Cookie Consent', 'Accept', 'User accepted analytics tracking')
   }
 
   const handleCookieDecline = () => {
     analytics.disable()
+    // Note: Can't track decline event since analytics is disabled
+    console.log('User declined analytics tracking')
   }
 
   return (

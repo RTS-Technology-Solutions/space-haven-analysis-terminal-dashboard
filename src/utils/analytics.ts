@@ -53,6 +53,16 @@ class Analytics {
     })
   }
 
+  trackOutboundLink(url: string, label: string) {
+    if (!this.config.enabled) return
+
+    ReactGA.event({
+      category: 'Outbound Link',
+      action: 'Click',
+      label: `${label} → ${url}`,
+    })
+  }
+
   trackUTM() {
     if (!this.config.enabled) return
 
