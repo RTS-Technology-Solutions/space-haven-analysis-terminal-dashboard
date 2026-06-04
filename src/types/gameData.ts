@@ -20,7 +20,7 @@ export interface GameSession {
   ships: Ship[]
   starSystems: StarSystem[]
   factionRelations: FactionRelation[]
-  researchProgress: Record<string, any>
+  researchProgress: Record<string, unknown>
 }
 
 // ============================================================================

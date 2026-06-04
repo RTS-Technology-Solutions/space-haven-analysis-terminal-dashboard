@@ -1,7 +1,9 @@
-// @ts-nocheck - Future implementation, not used in beta wireframe
 /**
  * Space Haven Save File Parser
  * Extracts hierarchical game data from XML save files
+ * 
+ * NOTE: This is future implementation code for Phase 3.
+ * Not used in beta wireframe. Contains intentional unused code.
  */
 
 import type {
@@ -407,6 +409,7 @@ export class SpaceHavenParser {
     return inventory
   }
   
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private extractConsumableInventory(lNode: HTMLElement, _location: string): ConsumableItem[] {
     const consumables: ConsumableItem[] = []
     const cinvNodes = lNode.getElementsByTagName('cinv')
@@ -460,7 +463,6 @@ export class SpaceHavenParser {
       // TODO: Add homeShipId field to CrewMember type for cleaner separation
       // For now, we store homeSid in currentTask for crew-to-ship assignment
       const homeShipId = htmlChar.getAttribute('homeSid') || ''
-      const _actualTask = htmlChar.getAttribute('task') || 'Idle'
       
       // Only process if this character has homeSid (fighter/shuttle)
       // Regular crew inside ships will be extracted separately
@@ -470,7 +472,7 @@ export class SpaceHavenParser {
         crewId: htmlChar.getAttribute('cid') || htmlChar.getAttribute('id') || '',
         name: htmlChar.getAttribute('cname') || 'Unknown',  // Fighters use cname, not name
         lastName: '',
-        side: (htmlChar.getAttribute('side') as any) || 'Player',
+        side: (htmlChar.getAttribute('side') || 'Player') as 'Player' | 'Civilian' | 'Hostile',
         faction: htmlChar.getAttribute('fac') || '', // fac = faction ID
         x: this.safeFloat(htmlChar, 'x'),
         y: this.safeFloat(htmlChar, 'y'),
@@ -532,7 +534,7 @@ export class SpaceHavenParser {
         crewId: htmlChar.getAttribute('cid') || '',
         name: htmlChar.getAttribute('name') || 'Unknown',
         lastName: htmlChar.getAttribute('lname') || '',
-        side: (htmlChar.getAttribute('side') as any) || 'Player',
+        side: (htmlChar.getAttribute('side') || 'Player') as 'Player' | 'Civilian' | 'Hostile',
         faction: htmlChar.getAttribute('fac') || '',
         x: this.safeFloat(htmlChar, 'x'),
         y: this.safeFloat(htmlChar, 'y'),
@@ -580,6 +582,7 @@ export class SpaceHavenParser {
    * Extract characters from INSIDE a ship element.
    * These are crew members stationed on the ship.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private extractCharactersFromShip(shipElem: HTMLElement, _shipId: string): CrewMember[] {
     const crew: CrewMember[] = []
     
@@ -597,7 +600,7 @@ export class SpaceHavenParser {
         crewId: htmlChar.getAttribute('cid') || '',
         name: htmlChar.getAttribute('name') || 'Unknown',
         lastName: htmlChar.getAttribute('lname') || '',
-        side: (htmlChar.getAttribute('side') as any) || 'Player',
+        side: (htmlChar.getAttribute('side') || 'Player') as 'Player' | 'Civilian' | 'Hostile',
         faction: htmlChar.getAttribute('fac') || '',
         x: this.safeFloat(htmlChar, 'x'),
         y: this.safeFloat(htmlChar, 'y'),
@@ -686,7 +689,7 @@ export class SpaceHavenParser {
     jobNodes.forEach(jobNode => {
       const htmlJob = jobNode as HTMLElement
       const profession = htmlJob.getAttribute('profession') || 'Unknown'
-      const priority = (htmlJob.getAttribute('priority') as any) || 'Medium'
+      const priority = (htmlJob.getAttribute('priority') || 'Medium') as 'High' | 'Medium' | 'Low'
       
       jobs.push({
         profession,

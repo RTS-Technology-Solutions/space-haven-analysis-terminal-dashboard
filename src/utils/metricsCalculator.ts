@@ -1,7 +1,9 @@
-// @ts-nocheck - Future implementation, not used in beta wireframe
 /**
  * Metrics Calculator for Space Haven Game Data
  * Derives insights and KPIs from parsed game state
+ * 
+ * NOTE: This is future implementation code for Phase 3.
+ * Not used in beta wireframe. Contains intentional unused code.
  */
 
 import type {
@@ -12,7 +14,7 @@ import type {
   CrewMetrics,
   GameSessionMetrics
 } from '../types/gameData'
-import { CRITICAL_SKILLS as _CRITICAL_SKILLS, WELLNESS_THRESHOLDS } from '../types/gameData'
+import { WELLNESS_THRESHOLDS } from '../types/gameData'
 import {
   calculateShipMetrics as calcShipMetrics,
   calculateCrewMetrics as calcCrewMetrics,
@@ -157,7 +159,7 @@ export class MetricsCalculator {
     return calculateAverageCrewHealth(ships)
   }
   
-  private calculateAverageFactionRelation(relations: any[]): number {
+  private calculateAverageFactionRelation(relations: FactionRelation[]): number {
     if (relations.length === 0) return 0
     
     const total = relations.reduce((sum, rel) => sum + rel.relationshipValue, 0)
