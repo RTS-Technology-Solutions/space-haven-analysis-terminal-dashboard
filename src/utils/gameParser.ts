@@ -519,6 +519,7 @@ export class SpaceHavenParser {
    * @deprecated Use extractCharactersFromRoot instead.
    * Legacy method - kept for compatibility but no longer used.
    */
+  // @ts-expect-error - Deprecated method kept for backwards compatibility
   private _extractCrew(shipElem: HTMLElement): CrewMember[] {
     const crew: CrewMember[] = []
     const charactersNodes = shipElem.getElementsByTagName('characters')

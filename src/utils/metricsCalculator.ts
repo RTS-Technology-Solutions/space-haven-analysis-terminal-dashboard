@@ -12,7 +12,8 @@ import type {
   CrewMember,
   ShipMetrics,
   CrewMetrics,
-  GameSessionMetrics
+  GameSessionMetrics,
+  FactionRelation
 } from '../types/gameData'
 import { WELLNESS_THRESHOLDS } from '../types/gameData'
 import {
@@ -135,6 +136,7 @@ export class MetricsCalculator {
    * Get wellness status category
    * @deprecated This method is kept for backwards compatibility
    */
+  // @ts-expect-error - Deprecated method kept for backwards compatibility
   private _getWellnessStatus(wellness: number): string {
     if (wellness >= WELLNESS_THRESHOLDS.excellent) return 'excellent'
     if (wellness >= WELLNESS_THRESHOLDS.good) return 'good'
@@ -147,6 +149,7 @@ export class MetricsCalculator {
    * Calculate average ship health across all ships
    * @deprecated Use calculateAverageShipHealth from extractionUtils
    */
+  // @ts-expect-error - Deprecated method kept for backwards compatibility
   private _calculateAverageShipHealth(ships: Ship[]): number {
     return calculateAverageShipHealth(ships)
   }
@@ -155,6 +158,7 @@ export class MetricsCalculator {
    * Calculate average crew health across all ships
    * @deprecated Use calculateAverageCrewHealth from extractionUtils
    */
+  // @ts-expect-error - Deprecated method kept for backwards compatibility
   private _calculateAverageCrewHealth(ships: Ship[]): number {
     return calculateAverageCrewHealth(ships)
   }
