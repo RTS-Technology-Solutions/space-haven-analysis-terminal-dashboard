@@ -54,7 +54,7 @@ export default function Home() {
             <p className="feature-description">
               Upload your save files and get detailed breakdowns of ships, crew, resources, and station progress.
             </p>
-            <span className="feature-status">Coming July 1, 2026</span>
+            <span className="feature-status">Coming June 20, 2026</span>
           </div>
 
           <div className="feature-card feature-available">

@@ -5,6 +5,8 @@ import CookieConsent from './components/CookieConsent'
 import FeedbackModal from './components/FeedbackModal'
 import Home from './pages/Home'
 import DashboardPage from './pages/DashboardPage'
+import BetaDashboard from './pages/BetaDashboard'
+import DevDashboard from './pages/DevDashboard'
 import DataPage from './pages/DataPage'
 import analytics from './utils/analytics'
 import './utils/easterEgg' // 💩 The true origin story lives here
@@ -23,6 +25,10 @@ function AnalyticsTracker() {
 
 function App() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
+
+  // Check if dev routes should be enabled (production vs development)
+  const enableDevRoutes = import.meta.env.VITE_ENABLE_DEV_ROUTES === 'true' || 
+                          import.meta.env.DEV // Fallback to Vite's built-in DEV mode
 
   // Initialize analytics if user previously accepted cookies
   useEffect(() => {
@@ -63,6 +69,24 @@ function App() {
               </main>
             </>
           } />
+          <Route path="/beta-dash" element={
+            <>
+              <Header onFeedbackClick={() => setIsFeedbackOpen(true)} />
+              <main className="main-content">
+                <BetaDashboard />
+              </main>
+            </>
+          } />
+          {enableDevRoutes && (
+            <Route path="/dev-dash" element={
+              <>
+                <Header onFeedbackClick={() => setIsFeedbackOpen(true)} />
+                <main className="main-content">
+                  <DevDashboard />
+                </main>
+              </>
+            } />
+          )}
           <Route path="/data" element={
             <>
               <Header onFeedbackClick={() => setIsFeedbackOpen(true)} />
