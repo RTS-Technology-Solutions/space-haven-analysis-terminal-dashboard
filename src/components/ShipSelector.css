@@ -1,0 +1,222 @@
+.ship-selector {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: var(--terminal-bg-panel, #12182b);
+  border: 1px solid var(--terminal-border, #2a3f5f);
+  border-radius: var(--radius-md, 4px);
+}
+
+.selector-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+.label-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.ship-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.ship-card {
+  position: relative;
+  background: var(--terminal-bg-dark, #0a0e1a);
+  border: 2px solid var(--terminal-border, #2a3f5f);
+  border-radius: var(--radius-sm, 4px);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+}
+
+.ship-card.player-owned {
+  border-color: rgba(0, 255, 136, 0.3);
+  background: linear-gradient(135deg, var(--terminal-bg-dark, #0a0e1a) 0%, rgba(0, 255, 136, 0.05) 100%);
+}
+
+.ship-card.other-owned {
+  border-color: rgba(255, 255, 255, 0.2);
+  opacity: 0.7;
+}
+
+.ship-card:hover {
+  border-color: var(--accent-green);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.ship-card.other-owned:hover {
+  opacity: 0.9;
+}
+
+.ship-card.selected {
+  border-color: var(--accent-green);
+  background: linear-gradient(135deg, var(--terminal-bg-dark, #0a0e1a) 0%, rgba(0, 255, 136, 0.1) 100%);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.ship-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  min-height: 28px;
+}
+
+.ship-type-badge {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ship-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary, #e0e6f0);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.ownership-badge {
+  font-size: 0.9rem;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.ship-card-stats {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ship-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.ship-stat .stat-icon {
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ship-stat .stat-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent-cyan, #00f7ff);
+  font-family: 'Space Mono', monospace;
+}
+
+.ship-stat .stat-label {
+  color: var(--text-secondary, #8892a6);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.selected-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 255, 136, 0.2);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent-green);
+  letter-spacing: 0.1em;
+}
+
+.checkmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: var(--accent-green);
+  color: var(--terminal-bg-dark, #0a0e1a);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.no-ships-message {
+  text-align: center;
+  color: var(--text-secondary, #8892a6);
+  font-style: italic;
+  padding: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ship-selector-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ship-card {
+    min-height: auto;
+  }
+
+  .ship-name {
+    font-size: 0.9rem;
+  }
+  
+  .ship-stat .stat-value {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ship-selector {
+    padding: 1rem;
+  }
+
+  .ship-card {
+    padding: 0.75rem;
+  }
+
+  .ship-card-stats {
+    gap: 0.75rem;
+  }
+}
+  font-size: 0.7rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.no-ships-message {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ship-selector-grid {
+    grid-template-columns: 1fr;
+  }
+}

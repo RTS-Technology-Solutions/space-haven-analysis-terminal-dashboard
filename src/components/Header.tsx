@@ -13,6 +13,14 @@ export default function Header({ onFeedbackClick }: HeaderProps) {
     analytics.trackOutboundLink('https://rtsts.tech', 'Header RTS Button')
   }
   
+  const handleGitHubClick = () => {
+    analytics.trackOutboundLink('https://github.com/RTS-Technology-Solutions/space-haven-analysis-terminal-dashboard', 'Header GitHub Button')
+  }
+  
+  const handleSupportClick = () => {
+    analytics.trackOutboundLink('https://buy.stripe.com/4gM28rdLt4540Vlcyzew802', 'Header Support Button')
+  }
+  
   const handleNavClick = (page: string) => {
     analytics.trackEvent('Navigation', 'Click', `Header Nav - ${page}`)
   }
@@ -56,6 +64,26 @@ export default function Header({ onFeedbackClick }: HeaderProps) {
         >
           💬 FEEDBACK
         </button>
+        <a 
+          href="https://github.com/RTS-Technology-Solutions/space-haven-analysis-terminal-dashboard" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="btn-terminal btn-terminal-sm"
+          onClick={handleGitHubClick}
+          title="View source code and contribute"
+        >
+          ⭐ GITHUB
+        </a>
+        <a 
+          href="https://buy.stripe.com/4gM28rdLt4540Vlcyzew802" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="btn-terminal btn-terminal-sm"
+          onClick={handleSupportClick}
+          title="Support development and server costs"
+        >
+          ❤️ SUPPORT
+        </a>
         <a 
           href="https://rtsts.tech?utm_source=shat-dashboard&utm_medium=referral&utm_campaign=header-button" 
           target="_blank" 

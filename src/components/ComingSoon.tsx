@@ -91,7 +91,7 @@ export default function ComingSoon({ targetDate, onDismiss }: ComingSoonProps) {
         )}
 
         <div className="coming-soon-footer">
-          Meanwhile, check out the <a href="/data" className="text-glow">Data Dictionary</a> →
+          Meanwhile, check out the <a href="/data" className="text-glow">Data Dictionary</a> or the <a href="/beta-dash" className="text-glow">Beta Wireframe</a> →
         </div>
       </div>
     </div>
