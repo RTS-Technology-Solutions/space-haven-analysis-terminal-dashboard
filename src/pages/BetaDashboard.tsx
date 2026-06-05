@@ -110,28 +110,18 @@ export default function BetaDashboard() {
           Planetary viewpoint (1M mile view) - Select a star system to view its sectors
         </p>
 
-        <div style={{ marginBottom: 'var(--space-lg)' }}>
-          <label style={{ display: 'block', color: 'var(--accent-cyan)', marginBottom: 'var(--space-sm)', fontWeight: 600 }}>
+        <div className="selector-wrapper">
+          <label className="selector-label">
             Select Star System:
           </label>
           <select
+            className="selector-dropdown"
             value={selectedSystemId || ''}
             onChange={(e) => {
               setSelectedSystemId(e.target.value || null)
               setSelectedSectorId(null) // Reset lower levels
               setSelectedShipId(null)
               setSelectedCrewId(null)
-            }}
-            style={{
-              width: '100%',
-              maxWidth: '400px',
-              padding: 'var(--space-sm)',
-              background: 'var(--terminal-bg-dark)',
-              border: '1px solid var(--accent-cyan)',
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--text-primary)',
-              fontSize: '1rem',
-              fontFamily: 'var(--font-mono)'
             }}
           >
             <option value="">-- Select System --</option>
@@ -178,27 +168,17 @@ export default function BetaDashboard() {
             Tactical viewpoint (10,000ft view) - Immediate tactical area with ships, objects, and stations
           </p>
 
-          <div style={{ marginBottom: 'var(--space-lg)' }}>
-            <label style={{ display: 'block', color: 'var(--accent-cyan)', marginBottom: 'var(--space-sm)', fontWeight: 600 }}>
+          <div className="selector-wrapper">
+            <label className="selector-label">
               Select Sector:
             </label>
             <select
+              className="selector-dropdown"
               value={selectedSectorId || ''}
               onChange={(e) => {
                 setSelectedSectorId(e.target.value || null)
                 setSelectedShipId(null) // Reset lower levels
                 setSelectedCrewId(null)
-              }}
-              style={{
-                width: '100%',
-                maxWidth: '400px',
-                padding: 'var(--space-sm)',
-                background: 'var(--terminal-bg-dark)',
-                border: '1px solid var(--accent-cyan)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--text-primary)',
-                fontSize: '1rem',
-                fontFamily: 'var(--font-mono)'
               }}
             >
               <option value="">-- Select Sector --</option>
@@ -256,26 +236,16 @@ export default function BetaDashboard() {
             Local object viewpoint (XY pixel view) - Ship systems, crew, storage, and condition stats
           </p>
 
-          <div style={{ marginBottom: 'var(--space-lg)' }}>
-            <label style={{ display: 'block', color: 'var(--accent-cyan)', marginBottom: 'var(--space-sm)', fontWeight: 600 }}>
+          <div className="selector-wrapper">
+            <label className="selector-label">
               Select Ship:
             </label>
             <select
+              className="selector-dropdown"
               value={selectedShipId || ''}
               onChange={(e) => {
                 setSelectedShipId(e.target.value || null)
                 setSelectedCrewId(null) // Reset lower levels
-              }}
-              style={{
-                width: '100%',
-                maxWidth: '400px',
-                padding: 'var(--space-sm)',
-                background: 'var(--terminal-bg-dark)',
-                border: '1px solid var(--accent-cyan)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--text-primary)',
-                fontSize: '1rem',
-                fontFamily: 'var(--font-mono)'
               }}
             >
               <option value="">-- Select Ship --</option>
@@ -534,24 +504,14 @@ export default function BetaDashboard() {
             Individual viewpoint (profile view) - Crew skills, status, conditions, and schedule
           </p>
 
-          <div style={{ marginBottom: 'var(--space-lg)' }}>
-            <label style={{ display: 'block', color: 'var(--accent-cyan)', marginBottom: 'var(--space-sm)', fontWeight: 600 }}>
+          <div className="selector-wrapper">
+            <label className="selector-label">
               Select Crew Member:
             </label>
             <select
+              className="selector-dropdown"
               value={selectedCrewId || ''}
               onChange={(e) => setSelectedCrewId(e.target.value || null)}
-              style={{
-                width: '100%',
-                maxWidth: '400px',
-                padding: 'var(--space-sm)',
-                background: 'var(--terminal-bg-dark)',
-                border: '1px solid var(--accent-cyan)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--text-primary)',
-                fontSize: '1rem',
-                fontFamily: 'var(--font-mono)'
-              }}
             >
               <option value="">-- Select Crew --</option>
               {crewOnShip.map(crew => (

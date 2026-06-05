@@ -49,6 +49,52 @@
   gap: var(--space-xl);
 }
 
+/* Selection Controls */
+.selector-wrapper {
+  margin-bottom: var(--space-lg);
+}
+
+.selector-label {
+  display: block;
+  color: var(--accent-cyan);
+  margin-bottom: var(--space-sm);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.selector-dropdown {
+  width: 100%;
+  max-width: 500px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--terminal-bg-dark);
+  border: 1px solid var(--accent-cyan);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.selector-dropdown:hover {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 10px rgba(0, 255, 170, 0.2);
+}
+
+.selector-dropdown:focus {
+  outline: none;
+  border-color: var(--accent-green);
+  box-shadow: 0 0 15px rgba(0, 255, 170, 0.3);
+}
+
+.selector-dropdown option {
+  background: var(--terminal-bg-panel);
+  color: var(--text-primary);
+  padding: var(--space-sm);
+}
+
 /* Stat Box Styling for Ship Details */
 .stat-box {
   background: var(--terminal-bg-dark);
