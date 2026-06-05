@@ -466,6 +466,13 @@ export class SpaceHavenParser {
       // Regular crew inside ships will be extracted separately
       if (!homeShipId) return
       
+      // Check if this is a craft (fighters/shuttles are OK here, but filter out other crafts)
+      const isCraft = htmlChar.getAttribute('craft') === '1'
+      if (isCraft) {
+        console.log(`  ⏭️ Skipping craft in space: ${htmlChar.getAttribute('cname')}`)
+        return
+      }
+      
       const crewMember: CrewMember = {
         crewId: htmlChar.getAttribute('cid') || htmlChar.getAttribute('id') || '',
         name: htmlChar.getAttribute('cname') || 'Unknown',  // Fighters use cname, not name
@@ -481,6 +488,8 @@ export class SpaceHavenParser {
         mood: 50,
         oxygen: 100,
         temperature: 20,
+        comfort: 100,
+        energy: 100,
         skills: [],
         jobAssignments: [],
         schedule: {},
@@ -497,6 +506,8 @@ export class SpaceHavenParser {
         crewMember.mood = this.extractVitalStat(propsNode, 'Mood')
         crewMember.oxygen = this.extractVitalStat(propsNode, 'Oxygen')
         crewMember.temperature = this.extractVitalStat(propsNode, 'Temperature')
+        crewMember.comfort = this.extractVitalStat(propsNode, 'Comfort', 100)
+        crewMember.energy = this.extractVitalStat(propsNode, 'Energy', 100)
       }
       
       // Extract skills and jobs from <pers>
@@ -593,10 +604,38 @@ export class SpaceHavenParser {
     
     charNodes.forEach(charNode => {
       const htmlChar = charNode as HTMLElement
+      
+      // Check if this is a craft/shuttle/fighter instead of crew
+      // Crafts typically have "craft" attribute or lack personality data
+      const isCraft = htmlChar.getAttribute('craft') === '1' || 
+                     htmlChar.getAttribute('craftType') !== null ||
+                     htmlChar.getAttribute('shuttleType') !== null
+      
+      // Skip crafts - they should not be in crew list
+      if (isCraft) {
+        console.log(`  ⏭️ Skipping craft: ${htmlChar.getAttribute('name') || htmlChar.getAttribute('cname')}`)
+        return
+      }
+      
+      const name = htmlChar.getAttribute('name') || 'Unknown'
+      const lastName = htmlChar.getAttribute('lname') || ''
+      
+      // Additional craft detection: check if has no personality node
+      const persNodes = charNode.getElementsByTagName('pers')
+      const hasPersNode = persNodes.length > 0
+      
+      // If no personality node AND name patterns suggest it's a craft, skip it
+      // Common craft naming: "BU1", "BU2", "SH1", "NX71BU2", etc.
+      const craftNamePatterns = /^(BU\d+|SH\d+|NX\d+|Shuttle|Fighter|Craft)/i
+      if (!hasPersNode && (craftNamePatterns.test(name) || name === 'Unknown')) {
+        console.log(`  ⏭️ Skipping likely craft (no pers): ${name}`)
+        return
+      }
+      
       const crewMember: CrewMember = {
         crewId: htmlChar.getAttribute('cid') || '',
-        name: htmlChar.getAttribute('name') || 'Unknown',
-        lastName: htmlChar.getAttribute('lname') || '',
+        name,
+        lastName,
         side: (htmlChar.getAttribute('side') as any) || 'Player',
         faction: htmlChar.getAttribute('fac') || '',
         x: this.safeFloat(htmlChar, 'x'),
@@ -608,6 +647,8 @@ export class SpaceHavenParser {
         mood: 50,
         oxygen: 100,
         temperature: 100,
+        comfort: 100,
+        energy: 100,
         skills: [],
         jobAssignments: [],
         schedule: {},
@@ -624,11 +665,12 @@ export class SpaceHavenParser {
         crewMember.mood = this.extractVitalStat(propsNode, 'Mood')
         crewMember.oxygen = this.extractVitalStat(propsNode, 'Oxygen')
         crewMember.temperature = this.extractVitalStat(propsNode, 'Temperature')
+        crewMember.comfort = this.extractVitalStat(propsNode, 'Comfort', 100)
+        crewMember.energy = this.extractVitalStat(propsNode, 'Energy', 100)
       }
       
-      // Extract skills
-      const persNodes = charNode.getElementsByTagName('pers')
-      if (persNodes.length > 0) {
+      // Extract skills from personality node
+      if (hasPersNode) {
         const persNode = persNodes[0] as HTMLElement
         crewMember.skills = this.extractSkills(persNode)
         crewMember.jobAssignments = this.extractJobAssignments(persNode)
@@ -640,15 +682,15 @@ export class SpaceHavenParser {
     return crew
   }
   
-  private extractVitalStat(propsNode: HTMLElement, statName: string): number {
+  private extractVitalStat(propsNode: HTMLElement, statName: string, defaultValue = 100): number {
     const statNodes = propsNode.getElementsByTagName(statName)
     if (statNodes.length > 0) {
       const statNode = statNodes[0] as HTMLElement
       // Return raw value, NOT percentage!
       // The game stores absolute values like Health v="140"
-      return this.safeFloat(statNode, 'v', 100)
+      return this.safeFloat(statNode, 'v', defaultValue)
     }
-    return 100
+    return defaultValue
   }
   
   private extractSkills(persNode: HTMLElement): Skill[] {

@@ -291,11 +291,14 @@ export default function DevDashboard() {
               }}
             >
               <option value="">-- Select System --</option>
-              {gameSession.starSystems.map(system => (
-                <option key={system.systemId} value={system.systemId}>
-                  {system.systemName || `System ${system.systemId}`}
-                </option>
-              ))}
+              {gameSession.starSystems
+                .filter(system => system.systemId !== 0 && system.systemId !== '0')
+                .filter(system => system.systemName && system.systemName.trim() !== '')
+                .map(system => (
+                  <option key={system.systemId} value={system.systemId}>
+                    {system.systemName || `System ${system.systemId}`}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -461,11 +464,13 @@ export default function DevDashboard() {
               onChange={(e) => setSelectedCrewId(e.target.value || null)}
             >
               <option value="">-- Select Crew --</option>
-              {selectedShip.crew.map(crew => (
-                <option key={crew.crewId} value={crew.crewId}>
-                  {crew.name} {crew.lastName}
-                </option>
-              ))}
+              {selectedShip.crew
+                .filter(crew => crew.name !== 'Unknown' && crew.name.trim() !== '')
+                .map(crew => (
+                  <option key={crew.crewId} value={crew.crewId}>
+                    {crew.name} {crew.lastName}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -496,12 +501,12 @@ export default function DevDashboard() {
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
                 {[
-                  { label: 'Health', value: selectedCrewMember.health, icon: '❤️' },
-                  { label: 'Mood', value: selectedCrewMember.mood, icon: '😊' },
-                  { label: 'Energy', value: selectedCrewMember.energy, icon: '⚡' },
-                  { label: 'Food', value: selectedCrewMember.food, icon: '🍽️' },
-                  { label: 'Comfort', value: selectedCrewMember.comfort, icon: '🛏️' },
-                  { label: 'Oxygen', value: selectedCrewMember.oxygen, icon: '💨' }
+                  { label: 'Health', value: selectedCrewMember.health, icon: '❤️', showPercent: true },
+                  { label: 'Mood', value: selectedCrewMember.mood, icon: '😊', showPercent: true },
+                  { label: 'Energy', value: selectedCrewMember.energy, icon: '⚡', showPercent: true },
+                  { label: 'Food', value: selectedCrewMember.food, icon: '🍽️', showPercent: true },
+                  { label: 'Comfort', value: selectedCrewMember.comfort, icon: '🛏️', showPercent: true },
+                  { label: 'Oxygen', value: selectedCrewMember.oxygen, icon: '💨', showPercent: true }
                 ].map((vital, idx) => (
                   <div key={idx} style={{
                     padding: 'var(--space-md)',
@@ -520,7 +525,7 @@ export default function DevDashboard() {
                                vital.value > 50 ? 'var(--accent-yellow)' : 
                                vital.value > 30 ? 'var(--accent-orange)' : 'var(--accent-red)'
                       }}>
-                        {vital.value}%
+                        {vital.value}{vital.showPercent ? '%' : ''}
                       </span>
                     </div>
                     {/* Progress bar */}
@@ -582,9 +587,36 @@ export default function DevDashboard() {
             color: 'var(--accent-yellow)', 
             fontSize: '1rem',
             fontWeight: 600,
-            padding: 'var(--space-sm)'
+            padding: 'var(--space-sm)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            🔍 DEV: Raw JSON Inspector (Click to expand)
+            <span>🔍 DEV: Raw JSON Inspector (Click to expand)</span>
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                const dataStr = JSON.stringify(gameSession, null, 2)
+                const blob = new Blob([dataStr], { type: 'application/json' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `${gameSession.saveFileName.replace('.xml', '')}_parsed.json`
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                URL.revokeObjectURL(url)
+              }}
+              className="btn-terminal"
+              style={{ 
+                padding: '0.5rem 1rem',
+                fontSize: '0.85rem',
+                background: 'var(--accent-cyan)',
+                borderColor: 'var(--accent-cyan)'
+              }}
+            >
+              💾 Download JSON
+            </button>
           </summary>
           <div style={{ 
             marginTop: 'var(--space-md)',
