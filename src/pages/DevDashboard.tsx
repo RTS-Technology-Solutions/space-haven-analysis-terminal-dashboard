@@ -3,7 +3,7 @@ import TerminalPanel from '../components/ui/TerminalPanel'
 import MetricTooltip from '../components/MetricTooltip'
 import JsonTreeViewer from '../components/JsonTreeViewer'
 import { createParserWithMappings } from '../utils/gameParser'
-import type { GameSession, Ship, CrewMember, StarSystem } from '../types/gameData'
+import type { GameSession } from '../types/gameData'
 import './BetaDashboard.css' // Reuse beta styles
 
 /**
@@ -20,7 +20,6 @@ export default function DevDashboard() {
 
   // Selection state for each hierarchy level
   const [selectedSystemId, setSelectedSystemId] = useState<number | string | null>(null)
-  const [selectedSectorId, setSelectedSectorId] = useState<string | null>(null)
   const [selectedShipId, setSelectedShipId] = useState<string | null>(null)
   const [selectedCrewId, setSelectedCrewId] = useState<string | null>(null)
 
@@ -126,7 +125,6 @@ export default function DevDashboard() {
   const handleReset = () => {
     setGameSession(null)
     setSelectedSystemId(null)
-    setSelectedSectorId(null)
     setSelectedShipId(null)
     setSelectedCrewId(null)
     setError(null)
@@ -157,10 +155,11 @@ export default function DevDashboard() {
     .reduce((sum, s) => sum + s.crew.length, 0) || 0
   const visitedSystemsCount = gameSession?.starSystems.filter(s => s.visited).length || 0
   const unexploredSystemsCount = gameSession?.starSystems.filter(s => !s.visited).length || 0
-  const averageCrewHealth = selectedShip ? 
-    selectedShip.crew.reduce((sum, c) => sum + c.health, 0) / selectedShip.crew.length : 0
-  const averageCrewMood = selectedShip ?
-    selectedShip.crew.reduce((sum, c) => sum + c.mood, 0) / selectedShip.crew.length : 0
+  // Calculate crew averages as percentages (base max = 100 for display)
+  const averageCrewHealth = selectedShip && selectedShip.crew.length > 0 ? 
+    selectedShip.crew.reduce((sum, c) => sum + Math.min(100, (c.health / 100) * 100), 0) / selectedShip.crew.length : 0
+  const averageCrewMood = selectedShip && selectedShip.crew.length > 0 ?
+    selectedShip.crew.reduce((sum, c) => sum + Math.min(100, (c.mood / 100) * 100), 0) / selectedShip.crew.length : 0
 
   // If no game session loaded, show upload screen
   if (!gameSession) {
@@ -411,7 +410,6 @@ export default function DevDashboard() {
               value={selectedSystemId || ''}
               onChange={(e) => {
                 setSelectedSystemId(e.target.value || null)
-                setSelectedSectorId(null)
                 setSelectedShipId(null)
                 setSelectedCrewId(null)
               }}
@@ -519,9 +517,9 @@ export default function DevDashboard() {
                 </div>
               </div>
               <div className="stat-box">
-                <div className="stat-label">Faction ID</div>
+                <div className="stat-label">Faction/Owner ID</div>
                 <div className="stat-value" style={{ fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
-                  {selectedShip.factionId}
+                  {selectedShip.ownerId || 'N/A'}
                 </div>
               </div>
             </div>
@@ -607,12 +605,83 @@ export default function DevDashboard() {
                   <div className="stat-box">
                     <div className="stat-label">Total Output</div>
                     <div className="stat-value">
-                      {selectedShip.powerGrid.generators.reduce((sum, g) => sum + g.output, 0)}
+                      {selectedShip.powerGrid.generators.reduce((sum, g) => sum + (g.powerOutput || 0), 0)}
                     </div>
                   </div>
                 </div>
               </>
             )}
+
+            {/* Storage & Inventory */}
+            {(() => {
+              // Aggregate all inventory items from all elements
+              const allInventory: Record<string, { name: string, quantity: number }> = {}
+              selectedShip.elements.forEach(elem => {
+                elem.inventory.forEach(item => {
+                  if (!allInventory[item.itemId]) {
+                    allInventory[item.itemId] = { name: item.itemName, quantity: 0 }
+                  }
+                  allInventory[item.itemId].quantity += item.quantity
+                })
+              })
+              
+              const inventoryArray = Object.entries(allInventory).map(([id, data]) => ({
+                itemId: id,
+                itemName: data.name,
+                quantity: data.quantity
+              })).sort((a, b) => b.quantity - a.quantity)
+              
+              if (inventoryArray.length === 0) return null
+              
+              return (
+                <>
+                  <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
+                    📦 Storage & Inventory
+                  </h3>
+                  <div style={{ marginBottom: 'var(--space-xl)' }}>
+                    <div style={{ 
+                      padding: 'var(--space-sm)',
+                      background: 'var(--terminal-bg-dark)',
+                      borderRadius: 'var(--radius-sm)',
+                      marginBottom: 'var(--space-md)'
+                    }}>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                        Total Items: <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>{inventoryArray.length}</span>
+                      </span>
+                    </div>
+                    
+                    {/* Items grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--space-sm)' }}>
+                      {inventoryArray.map((item, idx) => (
+                        <div key={idx} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: 'var(--space-sm)',
+                          background: 'rgba(0, 255, 255, 0.05)',
+                          border: '1px solid rgba(0, 255, 255, 0.2)',
+                          borderRadius: 'var(--radius-sm)'
+                        }}>
+                          <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                            {item.itemName}
+                          </span>
+                          <span style={{ 
+                            fontSize: '0.9rem', 
+                            fontWeight: 600,
+                            color: 'var(--accent-green)',
+                            padding: '0.2rem 0.5rem',
+                            background: 'rgba(0, 255, 136, 0.1)',
+                            borderRadius: 'var(--radius-sm)'
+                          }}>
+                            {item.quantity}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
           </>
         )}
       </TerminalPanel>
@@ -681,13 +750,13 @@ export default function DevDashboard() {
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
                 {[
-                  { label: 'Health', value: selectedCrewMember.health, icon: '❤️', showPercent: true },
-                  { label: 'Mood', value: selectedCrewMember.mood, icon: '😊', showPercent: true },
-                  { label: 'Energy', value: selectedCrewMember.energy, icon: '⚡', showPercent: true },
-                  { label: 'Food', value: selectedCrewMember.food, icon: '🍽️', showPercent: true },
-                  { label: 'Comfort', value: selectedCrewMember.comfort, icon: '🛏️', showPercent: true },
-                  { label: 'Oxygen', value: selectedCrewMember.oxygen, icon: '💨', showPercent: true }
-                ].map((vital, idx) => (
+                  { label: 'Health', value: selectedCrewMember.health, rawValue: selectedCrewMember.health, baseMax: 100, icon: '❤️' },
+                  { label: 'Mood', value: selectedCrewMember.mood, rawValue: selectedCrewMember.mood, baseMax: 100, icon: '😊' },
+                  { label: 'Food', value: selectedCrewMember.food, rawValue: selectedCrewMember.food, baseMax: 100, icon: '🍽️' },
+                  { label: 'Rest', value: selectedCrewMember.rest, rawValue: selectedCrewMember.rest, baseMax: 100, icon: '😴' },
+                  { label: 'Comfort', value: selectedCrewMember.comfort || 0, rawValue: selectedCrewMember.comfort, baseMax: 100, icon: '🛏️' },
+                  { label: 'Oxygen', value: selectedCrewMember.oxygen, rawValue: selectedCrewMember.oxygen, baseMax: 100, icon: '💨', isInverse: true }
+                ].filter(v => v.value !== undefined).map((vital, idx) => (
                   <div key={idx} style={{
                     padding: 'var(--space-md)',
                     background: 'rgba(0, 255, 255, 0.05)',
@@ -699,13 +768,23 @@ export default function DevDashboard() {
                         {vital.icon} {vital.label}
                       </span>
                       <span style={{ 
-                        fontSize: '1.1rem', 
+                        fontSize: '0.85rem', 
                         fontWeight: 600,
-                        color: vital.value > 80 ? 'var(--accent-green)' : 
-                               vital.value > 50 ? 'var(--accent-yellow)' : 
-                               vital.value > 30 ? 'var(--accent-orange)' : 'var(--accent-red)'
+                        color: 'var(--text-primary)'
                       }}>
-                        {vital.value}{vital.showPercent ? '%' : ''}
+                        {/* Show raw value and percentage */}
+                        <span style={{ color: 'var(--accent-cyan)' }}>{vital.rawValue ?? 0}</span>
+                        <span style={{ color: 'var(--text-tertiary)', margin: '0 0.3rem' }}>/</span>
+                        <span style={{ color: 'var(--text-secondary)' }}>{vital.baseMax}</span>
+                        <span style={{ 
+                          marginLeft: '0.5rem',
+                          color: !vital.isInverse && (vital.rawValue ?? 0) > 80 ? 'var(--accent-green)' : 
+                                 !vital.isInverse && (vital.rawValue ?? 0) > 50 ? 'var(--accent-yellow)' : 
+                                 !vital.isInverse && (vital.rawValue ?? 0) > 30 ? 'var(--accent-orange)' : 
+                                 vital.isInverse && (vital.rawValue ?? 0) === 0 ? 'var(--accent-green)' : 'var(--accent-red)'
+                        }}>
+                          ({Math.min(100, ((vital.rawValue ?? 0) / vital.baseMax) * 100).toFixed(0)}%)
+                        </span>
                       </span>
                     </div>
                     {/* Progress bar */}
@@ -718,14 +797,15 @@ export default function DevDashboard() {
                       boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)'
                     }}>
                       <div style={{ 
-                        width: `${vital.value}%`,
+                        width: `${Math.min(100, ((vital.rawValue ?? 0) / vital.baseMax) * 100)}%`,
                         height: '100%',
-                        background: vital.value > 80 ? 'linear-gradient(90deg, var(--accent-green), #00ff88)' : 
-                                   vital.value > 50 ? 'linear-gradient(90deg, var(--accent-yellow), #ffdd00)' : 
-                                   vital.value > 30 ? 'linear-gradient(90deg, var(--accent-orange), #ff8800)' : 
+                        background: !vital.isInverse && (vital.rawValue ?? 0) > 80 ? 'linear-gradient(90deg, var(--accent-green), #00ff88)' : 
+                                   !vital.isInverse && (vital.rawValue ?? 0) > 50 ? 'linear-gradient(90deg, var(--accent-yellow), #ffdd00)' : 
+                                   !vital.isInverse && (vital.rawValue ?? 0) > 30 ? 'linear-gradient(90deg, var(--accent-orange), #ff8800)' : 
+                                   vital.isInverse && (vital.rawValue ?? 0) === 0 ? 'linear-gradient(90deg, var(--accent-green), #00ff88)' :
                                                       'linear-gradient(90deg, var(--accent-red), #ff4444)',
                         transition: 'width 0.5s ease',
-                        boxShadow: `0 0 10px ${vital.value > 80 ? 'var(--accent-green)' : vital.value > 50 ? 'var(--accent-yellow)' : 'var(--accent-red)'}`
+                        boxShadow: `0 0 10px ${!vital.isInverse && (vital.rawValue ?? 0) > 80 ? 'var(--accent-green)' : !vital.isInverse && (vital.rawValue ?? 0) > 50 ? 'var(--accent-yellow)' : vital.isInverse && (vital.rawValue ?? 0) === 0 ? 'var(--accent-green)' : 'var(--accent-red)'}`
                       }} />
                     </div>
                   </div>
