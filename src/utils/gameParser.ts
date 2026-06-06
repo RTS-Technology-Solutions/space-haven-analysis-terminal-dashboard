@@ -753,7 +753,7 @@ export class SpaceHavenParser {
       const lastName = htmlChar.getAttribute('lname') || ''
       
       const crewMember: CrewMember = {
-        crewId: htmlChar.getAttribute('cid') || '',
+        crewId: htmlChar.getAttribute('entId') || '',
         name,
         lastName,
         side: (htmlChar.getAttribute('side') as any) || 'Player',
