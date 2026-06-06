@@ -13,6 +13,8 @@ import type {
   InventoryItem,
   ConsumableItem,
   StarSystem,
+  CelestialBody,
+  SystemResource,
   FactionRelation,
   ParserConfig
 } from '../types/gameData'
@@ -24,6 +26,7 @@ export class SpaceHavenParser {
   
   constructor(config?: Partial<ParserConfig>) {
     this.config = {
+      attributeMappings: config?.attributeMappings || {},
       skillMappings: config?.skillMappings || DEFAULT_SKILL_MAPPINGS,
       itemMappings: config?.itemMappings || {},
       traitMappings: config?.traitMappings || {},
@@ -529,8 +532,8 @@ export class SpaceHavenParser {
     const slots = Array.from(invNode.getElementsByTagName('s'))
     slots.forEach(slot => {
       const htmlSlot = slot as HTMLElement
-      const itemId = htmlSlot.getAttribute('element') || ''
-      const quantity = this.safeInt(htmlSlot, 'amount')
+      const itemId = htmlSlot.getAttribute('elementaryId') || ''
+      const quantity = this.safeInt(htmlSlot, 'inStorage')
       
       if (itemId && quantity > 0) {
         inventory.push({
@@ -624,10 +627,11 @@ export class SpaceHavenParser {
         food: 100,
         rest: 100,
         mood: 50,
-        oxygen: 100,
+        oxygen: 0,
         temperature: 20,
         comfort: 100,
         energy: 100,
+        attributes: [],
         skills: [],
         jobAssignments: [],
         schedule: {},
@@ -648,10 +652,11 @@ export class SpaceHavenParser {
         crewMember.energy = this.extractVitalStat(propsNode, 'Energy', 100)
       }
       
-      // Extract skills and jobs from <pers>
+      // Extract attributes, skills, and jobs from <pers>
       const persNodes = charNode.getElementsByTagName('pers')
       if (persNodes.length > 0) {
         const persNode = persNodes[0] as HTMLElement
+        crewMember.attributes = this.extractAttributes(persNode)
         crewMember.skills = this.extractSkills(persNode)
         crewMember.jobAssignments = this.extractJobAssignments(persNode)
       }
@@ -690,7 +695,7 @@ export class SpaceHavenParser {
         food: 100,
         rest: 100,
         mood: 50,
-        oxygen: 100,
+        oxygen: 0,
         temperature: 100,
         skills: [],
         jobAssignments: [],
@@ -765,10 +770,11 @@ export class SpaceHavenParser {
         food: 100,
         rest: 100,
         mood: 50,
-        oxygen: 100,
+        oxygen: 0,
         temperature: 100,
         comfort: 100,
         energy: 100,
+        attributes: [],
         skills: [],
         jobAssignments: [],
         schedule: {},
@@ -789,10 +795,11 @@ export class SpaceHavenParser {
         crewMember.energy = this.extractVitalStat(propsNode, 'Energy', 100)
       }
       
-      // Extract skills and jobs from <pers>
+      // Extract attributes, skills, and jobs from <pers>
       const persNodes = charNode.getElementsByTagName('pers')
       if (persNodes.length > 0) {
         const persNode = persNodes[0] as HTMLElement
+        crewMember.attributes = this.extractAttributes(persNode)
         crewMember.skills = this.extractSkills(persNode)
         crewMember.jobAssignments = this.extractJobAssignments(persNode)
       }
@@ -814,12 +821,24 @@ export class SpaceHavenParser {
         child.tagName.toLowerCase() === statName.toLowerCase()
       )
       if (found) {
+        // Special handling for Oxygen: use 'oxs' attribute (oxygen suit/storage out of 1000)
+        if (statName.toLowerCase() === 'oxygen') {
+          return this.safeFloat(found as HTMLElement, 'oxs', 0)
+        }
         return this.safeFloat(found as HTMLElement, 'v', defaultValue)
       }
     }
     
     if (statNodes.length > 0) {
       const statNode = statNodes[0] as HTMLElement
+      
+      // Special handling for Oxygen: use 'oxs' attribute (oxygen suit/storage out of 1000)
+      // - oxs=0: crew is breathing ship air (inside pressurized area)
+      // - oxs=970-1000: crew has personal oxygen reserve (spacesuit/tank)
+      if (statName.toLowerCase() === 'oxygen') {
+        return this.safeFloat(statNode, 'oxs', 0)
+      }
+      
       // Return raw value, NOT percentage!
       // The game stores absolute values like Health v="140"
       return this.safeFloat(statNode, 'v', defaultValue)
@@ -827,24 +846,50 @@ export class SpaceHavenParser {
     return defaultValue
   }
   
-  private extractSkills(persNode: HTMLElement): Skill[] {
-    const skills: Skill[] = []
+  private extractAttributes(persNode: HTMLElement): any[] {
+    const attributes: any[] = []
     const attrNodes = persNode.getElementsByTagName('attr')
     
-    if (attrNodes.length === 0) return skills
+    if (attrNodes.length === 0) return attributes
     
     const attrNode = attrNodes[0] as HTMLElement
-    const skillNodes = Array.from(attrNode.getElementsByTagName('a'))
-    skillNodes.forEach(skillNode => {
-      const htmlSkill = skillNode as HTMLElement
-      const skillId = this.safeInt(htmlSkill, 'id')
-      const points = this.safeInt(htmlSkill, 'points')
+    const attrElements = Array.from(attrNode.getElementsByTagName('a'))
+    attrElements.forEach(attrElement => {
+      const htmlAttr = attrElement as HTMLElement
+      const attributeId = this.safeInt(htmlAttr, 'id')
+      const points = this.safeInt(htmlAttr, 'points')
+      
+      attributes.push({
+        attributeId,
+        attributeName: this.getAttributeName(attributeId),
+        points
+      })
+    })
+    
+    return attributes
+  }
+
+  private extractSkills(persNode: HTMLElement): any[] {
+    const skills: any[] = []
+    const skillsNodes = persNode.getElementsByTagName('skills')
+    
+    if (skillsNodes.length === 0) return skills
+    
+    const skillsNode = skillsNodes[0] as HTMLElement
+    const skillElements = Array.from(skillsNode.getElementsByTagName('s'))
+    skillElements.forEach(skillElement => {
+      const htmlSkill = skillElement as HTMLElement
+      const skillId = this.safeInt(htmlSkill, 'sk')
+      const level = this.safeInt(htmlSkill, 'level')
+      const maxNatural = this.safeInt(htmlSkill, 'mxn')
+      const experience = this.safeInt(htmlSkill, 'exp')
       
       skills.push({
         skillId,
         skillName: this.getSkillName(skillId),
-        level: points,
-        experience: 0
+        level,
+        maxNatural,
+        experience
       })
     })
     
@@ -896,13 +941,16 @@ export class SpaceHavenParser {
       // Extract visited status from 'gen' attribute (gen="1" means generated/visited)
       const visited = htmlSys.getAttribute('gen') === '1'
       
+      const systemId = this.safeInt(htmlSys, 'systemId')
+      
       const system: StarSystem = {
-        systemId: this.safeInt(htmlSys, 'systemId'),
+        systemId,
         systemName: this.decodeHex(htmlSys.getAttribute('sn') || ''),
         systemType: this.safeAttr(htmlSys, 'stype', 'Unknown'),
         x: this.safeFloat(htmlSys, 'x'),
         y: this.safeFloat(htmlSys, 'y'),
         visited,
+        bodies: this.extractCelestialBodies(htmlSys, systemId),
         resources: [],
         stations: [],
         fleets: []
@@ -912,6 +960,71 @@ export class SpaceHavenParser {
     })
     
     return systems
+  }
+
+  /**
+   * Extract celestial bodies (stars, planets, asteroid fields) from a system
+   */
+  private extractCelestialBodies(systemNode: HTMLElement, systemId: number): CelestialBody[] {
+    const bodies: CelestialBody[] = []
+    const bodiesContainers = systemNode.querySelectorAll(':scope > bodies')
+    
+    if (bodiesContainers.length === 0) return bodies
+    
+    const bodiesContainer = bodiesContainers[0] as HTMLElement
+    const bodyNodes = Array.from(bodiesContainer.querySelectorAll(':scope > l'))
+    
+    bodyNodes.forEach(bodyNode => {
+      const htmlBody = bodyNode as HTMLElement
+      const bodyType = htmlBody.getAttribute('type') || 'Unknown'
+      
+      // Extract visited status from nested <info> tag
+      const infoNodes = htmlBody.getElementsByTagName('info')
+      const visited = infoNodes.length > 0 && infoNodes[0].getAttribute('visited') === 'true'
+      
+      // Extract resources from <stuff> section
+      const resources: SystemResource[] = []
+      const stuffNodes = htmlBody.getElementsByTagName('stuff')
+      if (stuffNodes.length > 0) {
+        const stuffNode = stuffNodes[0] as HTMLElement
+        const resourceNodes = Array.from(stuffNode.getElementsByTagName('s'))
+        resourceNodes.forEach(resNode => {
+          const htmlRes = resNode as HTMLElement
+          if (htmlRes.getAttribute('type') === 'Resource') {
+            const elementId = htmlRes.getAttribute('elementId') || ''
+            const quantity = this.safeInt(htmlRes, 'howMuch', 0)
+            if (elementId && quantity > 0) {
+              resources.push({
+                resourceId: elementId,
+                resourceName: this.getItemName(elementId, `Resource ${elementId}`),
+                quantity
+              })
+            }
+          }
+        })
+      }
+      
+      const body: CelestialBody = {
+        bodyId: this.safeInt(htmlBody, 'id'),
+        bodyType: bodyType as CelestialBody['bodyType'],
+        systemId,
+        x: this.safeFloat(htmlBody, 'x'),
+        y: this.safeFloat(htmlBody, 'y'),
+        visited,
+        resources,
+        seed: htmlBody.getAttribute('seed') || undefined
+      }
+      
+      // Add star-specific fields
+      if (bodyType === 'Star') {
+        body.starType = htmlBody.getAttribute('starType') || undefined
+        body.starClass = htmlBody.getAttribute('starClass') || undefined
+      }
+      
+      bodies.push(body)
+    })
+    
+    return bodies
   }
   
   /**
@@ -1044,6 +1157,10 @@ export class SpaceHavenParser {
   
   private getSkillName(skillId: number): string {
     return this.config.skillMappings[skillId] || `Unknown Skill ${skillId}`
+  }
+  
+  private getAttributeName(attributeId: number): string {
+    return this.config.attributeMappings[attributeId] || `Unknown Attribute ${attributeId}`
   }
   
   private decodeHex(hexString: string): string {

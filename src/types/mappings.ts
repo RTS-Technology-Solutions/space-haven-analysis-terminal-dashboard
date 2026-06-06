@@ -17,6 +17,7 @@ export interface AttributeMapping extends MappingItem {
 
 export interface IdMappings {
   // Original game object mappings
+  attributes: MappingItem[]  // Character attributes (Bravery, Zest, Intelligence, Perception)
   skills: MappingItem[]
   traits: MappingItem[]
   occupations: MappingItem[]

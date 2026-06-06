@@ -162,6 +162,9 @@ export interface CrewMember {
   comfort?: number  // Raw comfort level
   energy?: number  // Raw energy level (may not be present in all saves)
   
+  // Attributes (Bravery, Zest, Intelligence, Perception)
+  attributes: Attribute[]
+  
   // Skills and jobs
   skills: Skill[]
   jobAssignments: JobAssignment[]
@@ -175,10 +178,17 @@ export interface CrewMember {
   statusSeverity?: 'excellent' | 'good' | 'fair' | 'poor' | 'critical'
 }
 
+export interface Attribute {
+  attributeId: number
+  attributeName: string
+  points: number
+}
+
 export interface Skill {
   skillId: number
   skillName: string
   level: number
+  maxNatural: number  // mxn in XML
   experience: number
 }
 
@@ -199,11 +209,27 @@ export interface StarSystem {
   y: number
   visited: boolean
   
+  // Celestial bodies in this system
+  bodies: CelestialBody[]
   // Resources available in this system
   resources: SystemResource[]
   // Stations/fleets present
   stations: StationInfo[]
   fleets: FleetInfo[]
+}
+
+export interface CelestialBody {
+  bodyId: number
+  bodyType: 'Star' | 'Planet' | 'AsteroidField' | 'Moon' | 'Unknown'
+  systemId: number
+  x: number
+  y: number
+  visited: boolean
+  resources: SystemResource[]
+  // Additional metadata
+  starType?: string  // MainSequence, etc.
+  starClass?: string // A, B, F, G, K, M, etc.
+  seed?: string
 }
 
 export interface SystemResource {
@@ -304,6 +330,7 @@ export interface GameSessionMetrics {
 // ============================================================================
 
 export interface ParserConfig {
+  attributeMappings: Record<number, string>  // Attribute ID -> name (Bravery, Zest, Intelligence, Perception)
   skillMappings: Record<number, string>
   itemMappings: Record<string, string>
   traitMappings: Record<string, string>

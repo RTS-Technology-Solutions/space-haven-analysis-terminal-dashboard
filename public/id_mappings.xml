@@ -21,64 +21,104 @@
 -->
 <mappings>
     <skills>
+        <description>
+            Character skills stored in XML as &lt;skills&gt;&lt;s sk="2" level="3" mxn="8" exp="2123"/&gt;
+            sk = skill ID, level = current level, mxn = max natural level, exp = experience points
+        </description>
         <skill>
-            <id>1</id><name>Construct</name>
+            <id>1</id><name>construct</name>
         </skill>
         <skill>
-            <id>2</id><name>Mining</name>
+            <id>2</id><name>mining</name>
         </skill>
         <skill>
-            <id>3</id><name>Botany</name>
+            <id>3</id><name>botany</name>
         </skill>
         <skill>
-            <id>4</id><name>Construction</name>
+            <id>4</id><name>construct</name>
         </skill>
         <skill>
-            <id>5</id><name>Industry</name>
+            <id>5</id><name>industry</name>
         </skill>
         <skill>
-            <id>6</id><name>Medical</name>
+            <id>6</id><name>medical</name>
         </skill>
         <skill>
-            <id>7</id><name>Gunner</name>
+            <id>7</id><name>gunner</name>
         </skill>
         <skill>
-            <id>8</id><name>Shielding</name>
+            <id>8</id><name>shielding</name>
         </skill>
         <skill>
-            <id>9</id><name>Operations</name>
+            <id>9</id><name>operations</name>
         </skill>
         <skill>
-            <id>10</id><name>Weapons</name>
+            <id>10</id><name>weapons</name>
         </skill>
         <skill>
-            <id>12</id><name>Carry</name>
+            <id>12</id><name>carry capacity</name>
         </skill>
         <skill>
             <id>13</id><name>Unknown (unused)</name>
         </skill>
         <skill>
-            <id>14</id><name>Navigation</name>
+            <id>14</id><name>navigation</name>
         </skill>
         <skill>
-            <id>16</id><name>Research</name>
+            <id>16</id><name>research</name>
         </skill>
         <skill>
-            <id>22</id><name>Piloting</name>
-        </skill>
-        <skill>
-            <id>210</id><name>Agility</name>
-        </skill>
-        <skill>
-            <id>212</id><name>Directing</name>
-        </skill>
-        <skill>
-            <id>213</id><name>Processing</name>
-        </skill>
-        <skill>
-            <id>214</id><name>Combat Operations</name>
+            <id>22</id><name>piloting</name>
         </skill>
     </skills>
+
+    <modifiers>
+        <description>
+            Personal modifiers stored in XML as &lt;rate&gt;&lt;m ac="X"/&gt; within condition tags
+            ac = action code for the modifier type, values are percentages (can be negative)
+        </description>
+        <modifier>
+            <id>-1</id><name>accuracy</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-2</id><name>accident</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-3</id><name>working speed</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-4</id><name>recovery</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-5</id><name>learning</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-6</id><name>surrender</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>0</id><name>carry capacity</name><unit>int</unit>
+        </modifier>
+    </modifiers>
+
+    <attributes>
+        <description>
+            Character attributes (Bravery, Zest, Intelligence, Perception)
+            Stored in XML as &lt;attr&gt;&lt;a id="210" points="2"/&gt;
+            These are DIFFERENT from skills and represent core character traits.
+        </description>
+        <attribute>
+            <id>210</id><name>Bravery</name>
+        </attribute>
+        <attribute>
+            <id>212</id><name>Zest</name>
+        </attribute>
+        <attribute>
+            <id>213</id><name>Intelligence</name>
+        </attribute>
+        <attribute>
+            <id>214</id><name>Perception</name>
+        </attribute>
+    </attributes>
 
     <traits>
         <trait>
@@ -1733,7 +1773,7 @@
             <stat>Rest</stat>
             <baseMax>100</baseMax>
             <observedMax>168</observedMax>
-            <notes>Rest can exceed 100 (over-rested state). Values above 100 may indicate extended sleep or rest bonuses.</notes>
+            <notes>Energy stat (displayed in-game as "Energy", stored in XML as &lt;Rest&gt;). Can exceed 100 (over-energized state). Values above 100 may indicate extended rest or energy bonuses from facilities/traits.</notes>
         </vital>
         <vital>
             <stat>Mood</stat>
@@ -1743,9 +1783,9 @@
         </vital>
         <vital>
             <stat>Oxygen</stat>
-            <baseMax>100</baseMax>
-            <observedMax>0</observedMax>
-            <notes>All crew showing 0 because they are inside ship with functional life support. Value would increase in oxygen-deprived environments.</notes>
+            <baseMax>1000</baseMax>
+            <observedMax>994</observedMax>
+            <notes>Uses 'oxs' attribute (oxygen suit/storage), NOT 'v' attribute. Value out of 1000 max. oxs=0 means crew is breathing ship air (inside pressurized area). oxs=970-1000 means crew has personal oxygen reserve in spacesuit/tank. Observed: Player ship crew all have oxs=0 (breathing ship air), station crew have oxs=970-994 (possibly in spacesuits or unpressurized areas).</notes>
         </vital>
         <vital>
             <stat>Temperature</stat>

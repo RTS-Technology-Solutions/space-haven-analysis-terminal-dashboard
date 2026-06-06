@@ -28,6 +28,7 @@ export async function getParserConfig(): Promise<ParserConfig> {
   const mappings = await getMappings()
   
   return {
+    attributeMappings: toNumericMappings(mappings.attributes || []),
     skillMappings: toNumericMappings(mappings.skills),
     itemMappings: toStringMappings(mappings.items),
     traitMappings: toStringMappings(mappings.traits),

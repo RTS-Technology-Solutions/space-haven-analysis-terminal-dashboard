@@ -100,6 +100,7 @@ export async function loadIdMappings(): Promise<ParsedMappings> {
 
     const mappings: IdMappings = {
       // Original game object mappings
+      attributes: parseCategory('attributes'),  // Character attributes (Bravery, Zest, Intelligence, Perception)
       skills: parseCategory('skills'),
       traits: parseCategory('traits'),
       occupations: parseCategory('occupations'),

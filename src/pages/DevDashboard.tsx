@@ -27,6 +27,7 @@ export default function DevDashboard() {
 
   // Selection state for each hierarchy level
   const [selectedSystemId, setSelectedSystemId] = useState<number | string | null>(null)
+  const [selectedBodyId, setSelectedBodyId] = useState<number | null>(null)
   const [selectedShipId, setSelectedShipId] = useState<string | null>(null)
   const [selectedCrewId, setSelectedCrewId] = useState<string | null>(null)
 
@@ -84,17 +85,10 @@ export default function DevDashboard() {
       
       setGameSession(session)
       
-      // Auto-select first system if available
-      if (session.starSystems.length > 0) {
-        setSelectedSystemId(session.starSystems[0].systemId)
-      }
+      // Don't auto-select system - let user follow guided flow
+      // User should select system → ship → crew in order
       
-      // Auto-select first player ship if available
-      const playerShip = session.ships.find(s => s.isPlayerOwned)
-      if (playerShip) {
-        setSelectedShipId(playerShip.shipId)
-        console.log('🎮 Auto-selected player ship:', playerShip.shipName)
-      }
+      console.log('🎮 Game session loaded - ready for guided navigation')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse save file')
       console.error('❌ Parse error:', err)
@@ -158,6 +152,7 @@ export default function DevDashboard() {
   const handleReset = () => {
     setGameSession(null)
     setSelectedSystemId(null)
+    setSelectedBodyId(null)
     setSelectedShipId(null)
     setSelectedCrewId(null)
     setError(null)
@@ -364,7 +359,6 @@ export default function DevDashboard() {
                 <input
                   id="save-file-input"
                   type="file"
-                  accept=".xml"
                   onChange={handleFileUpload}
                   style={{ display: 'none' }}
                 />
@@ -501,6 +495,8 @@ export default function DevDashboard() {
 
       {/* ================================================================ */}
       {/* LEVEL 1: GAME DATA (Always visible, no selector)                */}
+      {/* ✅ VERIFIED: Save File Name, Days Survived, Game Timestamp,      */}
+      {/*              Star Systems, Ships, Crew Members                   */}
       {/* ================================================================ */}
       <TerminalPanel title="🎮 LEVEL 1: GAME DATA" glow>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
@@ -508,6 +504,7 @@ export default function DevDashboard() {
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
+          {/* ✅ VERIFIED */}
           <div className="stat-box">
             <div className="stat-label">
               Save File Name
@@ -521,6 +518,7 @@ export default function DevDashboard() {
             <div className="stat-value" style={{ fontSize: '1rem' }}>{gameSession.saveFileName}</div>
           </div>
 
+          {/* ✅ VERIFIED */}
           <DebugInfo
             fieldId="game.daysSurvived"
             fieldLabel="Days Survived"
@@ -543,6 +541,7 @@ export default function DevDashboard() {
             </div>
           </DebugInfo>
 
+          {/* ✅ VERIFIED */}
           <div className="stat-box">
             <div className="stat-label">
               Game Timestamp
@@ -558,6 +557,7 @@ export default function DevDashboard() {
             </div>
           </div>
 
+          {/* ✅ VERIFIED */}
           <DebugInfo
             fieldId="game.starSystems"
             fieldLabel="Star Systems (Visited / Unexplored)"
@@ -653,6 +653,7 @@ export default function DevDashboard() {
               value={selectedSystemId || ''}
               onChange={(e) => {
                 setSelectedSystemId(e.target.value || null)
+                setSelectedBodyId(null)
                 setSelectedShipId(null)
                 setSelectedCrewId(null)
               }}
@@ -676,21 +677,40 @@ export default function DevDashboard() {
 
           {selectedSystem && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
+              {/* ✅ VERIFIED */}
               <div className="stat-box">
                 <div className="stat-label">System Name</div>
                 <div className="stat-value" style={{ fontSize: '1.2rem' }}>
                   {selectedSystem.systemName || `System ${selectedSystem.systemId}`}
                 </div>
               </div>
+              {/* ⚠️ NOT VERIFIED */}
+              <div className="stat-box">
+                <div className="stat-label">System Type</div>
+                <div className="stat-value" style={{ fontSize: '1rem' }}>
+                  {selectedSystem.systemType || 'Unknown'}
+                </div>
+              </div>
+              {/* ✅ VERIFIED */}
+              <div className="stat-box">
+                <div className="stat-label">Ships in System</div>
+                <div className="stat-value">
+                  {getShipCountForSystem(selectedSystem.systemId)}
+                </div>
+              </div>
+              {/* ✅ VERIFIED */}
               <div className="stat-box">
                 <div className="stat-label">System ID</div>
                 <div className="stat-value" style={{ fontSize: '1rem', fontFamily: 'var(--font-mono)' }}>
                   {selectedSystem.systemId}
                 </div>
               </div>
+              {/* ✅ VERIFIED */}
               <div className="stat-box">
-                <div className="stat-label">Resources</div>
-                <div className="stat-value">{selectedSystem.resources?.length || 0}</div>
+                <div className="stat-label">Visited</div>
+                <div className="stat-value" style={{ color: selectedSystem.visited ? 'var(--accent-green)' : 'var(--text-tertiary)' }}>
+                  {selectedSystem.visited ? '✓ Yes' : 'No'}
+                </div>
               </div>
             </div>
           )}
@@ -698,9 +718,100 @@ export default function DevDashboard() {
       )}
 
       {/* ================================================================ */}
-      {/* LEVEL 3: SHIP (Ship selector)                                   */}
+      {/* LEVEL 3: BODIES (Celestial bodies in selected system)           */}
+      {/* ✅ VERIFIED: Total Bodies, Stars, Planets, Asteroid Fields,     */}
+      {/*              Resources                                          */}
       {/* ================================================================ */}
-      <TerminalPanel title="🚀 LEVEL 3: SHIP DATA">
+      {selectedSystemId && selectedSystem && (
+        <TerminalPanel title="🌍 LEVEL 3: CELESTIAL BODIES">
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
+            Celestial objects in {selectedSystem.systemName} - Stars, planets, asteroid fields, and resources
+          </p>
+
+          {selectedSystem.bodies && selectedSystem.bodies.length > 0 ? (
+            <>
+              {/* ✅ ALL METRICS VERIFIED */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
+                <div className="stat-box">
+                  <div className="stat-label">Total Bodies</div>
+                  <div className="stat-value">{selectedSystem.bodies.length}</div>
+                </div>
+                <div className="stat-box">
+                  <div className="stat-label">Stars</div>
+                  <div className="stat-value">{selectedSystem.bodies.filter(b => b.bodyType === 'Star').length}</div>
+                </div>
+                <div className="stat-box">
+                  <div className="stat-label">Planets</div>
+                  <div className="stat-value">{selectedSystem.bodies.filter(b => b.bodyType === 'Planet').length}</div>
+                </div>
+                <div className="stat-box">
+                  <div className="stat-label">Asteroid Fields</div>
+                  <div className="stat-value">{selectedSystem.bodies.filter(b => b.bodyType === 'AsteroidField').length}</div>
+                </div>
+              </div>
+
+              {/* Bodies List */}
+              <div style={{ display: 'grid', gap: 'var(--space-sm)' }}>
+                {selectedSystem.bodies.map((body) => (
+                  <div key={body.bodyId} style={{
+                    padding: 'var(--space-md)',
+                    background: 'var(--terminal-bg-dark)',
+                    border: `1px solid ${body.visited ? 'var(--accent-green)' : 'rgba(0, 255, 255, 0.2)'}`,
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto',
+                    gap: 'var(--space-md)',
+                    alignItems: 'center'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: 'var(--space-xs)' }}>
+                        {body.bodyType === 'Star' && '⭐'} 
+                        {body.bodyType === 'Planet' && '🌍'} 
+                        {body.bodyType === 'AsteroidField' && '☄️'} 
+                        {' '}<strong>{body.bodyType}</strong> #{body.bodyId}
+                        {body.visited && <span style={{ color: 'var(--accent-green)', marginLeft: 'var(--space-sm)', fontSize: '0.9rem' }}>✓ Visited</span>}
+                      </div>
+                      {body.starType && (
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                          {body.starType} - Class {body.starClass}
+                        </div>
+                      )}
+                      {body.resources.length > 0 && (
+                        <div style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', marginTop: 'var(--space-xs)' }}>
+                          Resources: {body.resources.map(r => `${r.resourceName} (×${r.quantity})`).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textAlign: 'right' }}>
+                      ({body.x.toFixed(0)}, {body.y.toFixed(0)})
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div style={{
+              padding: 'var(--space-lg)',
+              textAlign: 'center',
+              color: 'var(--text-tertiary)',
+              background: 'rgba(0, 255, 255, 0.05)',
+              border: '1px solid rgba(0, 255, 255, 0.1)',
+              borderRadius: 'var(--radius-md)'
+            }}>
+              No celestial bodies data available for this system
+            </div>
+          )}
+        </TerminalPanel>
+      )}
+
+      {/* ================================================================ */}
+      {/* LEVEL 4: SHIP (Ship selector)                                   */}
+      {/* ✅ VERIFIED: Ship Name, Ship ID, Ownership, Faction/Owner ID,   */}
+      {/*              Hull Total Elements, Crew on Board, Hull Integrity */}
+      {/*              Power Efficiency, Avg Crew Health, Avg Crew Mood   */}
+      {/* ⚠️  NOT VERIFIED: Storage & Inventory (needs double-check)      */}
+      {/* ================================================================ */}
+      <TerminalPanel title="🚀 LEVEL 4: SHIP DATA">
         <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
           Local object viewpoint - Select a star system first, then choose a ship to view its systems and crew. Number shows crew count.
         </p>
@@ -834,27 +945,6 @@ export default function DevDashboard() {
               </div>
             </div>
 
-            {/* Power Grid Info */}
-            {selectedShip.powerGrid && (
-              <>
-                <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
-                  ⚡ Power Grid
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
-                  <div className="stat-box">
-                    <div className="stat-label">Generators</div>
-                    <div className="stat-value">{selectedShip.powerGrid.generators.length}</div>
-                  </div>
-                  <div className="stat-box">
-                    <div className="stat-label">Total Output</div>
-                    <div className="stat-value">
-                      {selectedShip.powerGrid.generators.reduce((sum, g) => sum + (g.powerOutput || 0), 0)}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
             {/* Storage & Inventory */}
             {(() => {
               // Aggregate all inventory items from all elements
@@ -874,8 +964,6 @@ export default function DevDashboard() {
                 quantity: data.quantity
               })).sort((a, b) => b.quantity - a.quantity)
               
-              if (inventoryArray.length === 0) return null
-              
               return (
                 <>
                   <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
@@ -890,37 +978,53 @@ export default function DevDashboard() {
                     }}>
                       <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                         Total Items: <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>{inventoryArray.length}</span>
+                        {' | '}
+                        Storage Elements: <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>
+                          {selectedShip.elements.filter(e => e.inventory && e.inventory.length > 0).length}
+                        </span>
                       </span>
                     </div>
                     
-                    {/* Items grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--space-sm)' }}>
-                      {inventoryArray.map((item, idx) => (
-                        <div key={idx} style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: 'var(--space-sm)',
-                          background: 'rgba(0, 255, 255, 0.05)',
-                          border: '1px solid rgba(0, 255, 255, 0.2)',
-                          borderRadius: 'var(--radius-sm)'
-                        }}>
-                          <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                            {item.itemName}
-                          </span>
-                          <span style={{ 
-                            fontSize: '0.9rem', 
-                            fontWeight: 600,
-                            color: 'var(--accent-green)',
-                            padding: '0.2rem 0.5rem',
-                            background: 'rgba(0, 255, 136, 0.1)',
+                    {inventoryArray.length > 0 ? (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--space-sm)' }}>
+                        {inventoryArray.map((item, idx) => (
+                          <div key={idx} style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: 'var(--space-sm)',
+                            background: 'rgba(0, 255, 255, 0.05)',
+                            border: '1px solid rgba(0, 255, 255, 0.2)',
                             borderRadius: 'var(--radius-sm)'
                           }}>
-                            {item.quantity}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                              {item.itemName}
+                            </span>
+                            <span style={{ 
+                              fontSize: '0.9rem', 
+                              fontWeight: 600,
+                              color: 'var(--accent-green)',
+                              padding: '0.2rem 0.5rem',
+                              background: 'rgba(0, 255, 136, 0.1)',
+                              borderRadius: 'var(--radius-sm)'
+                            }}>
+                              {item.quantity}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{
+                        padding: 'var(--space-lg)',
+                        textAlign: 'center',
+                        color: 'var(--text-tertiary)',
+                        background: 'rgba(0, 255, 255, 0.05)',
+                        border: '1px solid rgba(0, 255, 255, 0.1)',
+                        borderRadius: 'var(--radius-md)'
+                      }}>
+                        No items in storage
+                      </div>
+                    )}
                   </div>
                 </>
               )
@@ -930,9 +1034,11 @@ export default function DevDashboard() {
       </TerminalPanel>
 
       {/* ================================================================ */}
-      {/* LEVEL 4: CREW (Always visible, guided by disabled dropdown)     */}
+      {/* LEVEL 5: CREW (Always visible, guided by disabled dropdown)     */}
+      {/* ✅ VERIFIED: Name, ID, Health, Mood, Food, Energy, Comfort      */}
+      {/* ⚠️  NOT VERIFIED: Oxygen, Skills & Expertise                    */}
       {/* ================================================================ */}
-      <TerminalPanel title="👤 LEVEL 4: CREW DATA">
+      <TerminalPanel title="👤 LEVEL 5: CREW DATA">
         <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
           Individual viewpoint - Select a ship first to view crew members. Choose a crew member to see their skills, health, and job assignments.
         </p>
@@ -996,9 +1102,9 @@ export default function DevDashboard() {
                   { label: 'Health', value: selectedCrewMember.health, rawValue: selectedCrewMember.health, baseMax: 100, icon: '❤️' },
                   { label: 'Mood', value: selectedCrewMember.mood, rawValue: selectedCrewMember.mood, baseMax: 100, icon: '😊' },
                   { label: 'Food', value: selectedCrewMember.food, rawValue: selectedCrewMember.food, baseMax: 100, icon: '🍽️' },
-                  { label: 'Rest', value: selectedCrewMember.rest, rawValue: selectedCrewMember.rest, baseMax: 100, icon: '😴' },
+                  { label: 'Energy', value: selectedCrewMember.rest, rawValue: selectedCrewMember.rest, baseMax: 100, icon: '⚡' },
                   { label: 'Comfort', value: selectedCrewMember.comfort || 0, rawValue: selectedCrewMember.comfort, baseMax: 100, icon: '🛏️' },
-                  { label: 'Oxygen', value: selectedCrewMember.oxygen, rawValue: selectedCrewMember.oxygen, baseMax: 100, icon: '💨', isInverse: true }
+                  { label: 'Oxygen', value: selectedCrewMember.oxygen, rawValue: selectedCrewMember.oxygen, baseMax: 1000, icon: '💨', isInverse: true }
                 ].filter(v => v.value !== undefined).map((vital, idx) => (
                   <div key={idx} style={{
                     padding: 'var(--space-md)',
