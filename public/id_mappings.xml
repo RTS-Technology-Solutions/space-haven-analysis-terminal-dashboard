@@ -1587,4 +1587,183 @@
             </metric>
         </section>
     </appendix>
+
+    <!--
+        ELEMENT MAX VALUES
+        
+        Purpose: Define maximum health and shield values for ship elements.
+        These values are NOT percentages - they are absolute values that can vary
+        by module type and upgrade level.
+        
+        Usage: When calculating hull integrity or shield percentages, divide
+        current value by the max value for that element type.
+        
+        Data Source: Analyzed from game_20260605_1841.xml save file
+        Last Updated: 2026-06-06
+        
+        Notes:
+        - Hull health (ht attribute): Max varies by module type and upgrade tier
+        - Shield strength (sh attribute): Typically 32 for most modules, 144 for hull sections
+        - Elements without ht/sh attributes should be excluded from calculations
+        - Module type 46 appears to be floor/hull sections (primary structure)
+    -->
+    <elementMaxValues>
+        <element>
+            <moduleType>46</moduleType>
+            <name>Floor/Hull Section</name>
+            <maxHullHealth>13</maxHullHealth>
+            <maxShieldStrength>144</maxShieldStrength>
+            <notes>Primary ship structure. Health typically 12 when undamaged, can go up to 13 with upgrades.</notes>
+        </element>
+        <element>
+            <moduleType>44</moduleType>
+            <name>Standard Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Generic module type with standard shielding</notes>
+        </element>
+        <element>
+            <moduleType>25</moduleType>
+            <name>Facility Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Facility-type modules</notes>
+        </element>
+        <element>
+            <moduleType>90</moduleType>
+            <name>Utility Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Utility systems</notes>
+        </element>
+        <element>
+            <moduleType>122</moduleType>
+            <name>Special Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Special purpose module</notes>
+        </element>
+        <element>
+            <moduleType>305</moduleType>
+            <name>Advanced Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Advanced systems</notes>
+        </element>
+        <element>
+            <moduleType>424</moduleType>
+            <name>Defense Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Defense systems</notes>
+        </element>
+        <element>
+            <moduleType>2956</moduleType>
+            <name>Production Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Production facilities</notes>
+        </element>
+        <element>
+            <moduleType>2977</moduleType>
+            <name>Storage Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Storage systems</notes>
+        </element>
+        <element>
+            <moduleType>3168</moduleType>
+            <name>Research Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Research facilities</notes>
+        </element>
+        <element>
+            <moduleType>4087</moduleType>
+            <name>Power Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Power generation systems</notes>
+        </element>
+    </elementMaxValues>
+
+    <!--
+        CREW VITAL STAT MAX VALUES
+        
+        Purpose: Define base maximum values for crew vital statistics.
+        These are NOT simple 0-100 percentages - values can exceed 100 based on
+        character traits, upgrades, and game progression.
+        
+        Usage: When displaying crew stats as percentages, use these as baseline
+        reference values. However, individual crew may have different actual max
+        values based on traits/upgrades.
+        
+        Data Source: Analyzed from game_20260605_1841.xml save file (6 crew sample)
+        Last Updated: 2026-06-06
+        
+        Notes:
+        - Health: Can range from 80-140+ (varies by character traits/upgrades)
+        - Food: Appears to cap at 100 (standard satiation limit)
+        - Rest: Can exceed 100 (168 observed - possibly over-rested/fatigue system)
+        - Mood: Can range 0-110+ (mood boosts can exceed base 100)
+        - Oxygen: 0 when inside ship with life support (not a percentage)
+        - Temperature: 100 = comfortable (likely not a percentage, but comfort level)
+        - Energy: Not yet observed in data (may be added in future updates)
+        - Comfort: Observed up to 100 (likely caps at 100)
+        
+        IMPORTANT: These are REFERENCE values, not hard caps. Individual crew
+        members may have higher or lower actual maximums. For accurate percentage
+        calculation, would need to parse individual character max values from
+        save file if available.
+    -->
+    <crewVitalMaxValues>
+        <vital>
+            <stat>Health</stat>
+            <baseMax>100</baseMax>
+            <observedMax>140</observedMax>
+            <notes>Base health is 100, but can be increased by traits, cybernetics, and medical upgrades. Values above 100 indicate enhanced characters.</notes>
+        </vital>
+        <vital>
+            <stat>Food</stat>
+            <baseMax>100</baseMax>
+            <observedMax>100</observedMax>
+            <notes>Food/satiation appears to cap at 100. All observed crew at exactly 100 suggests recent meal or auto-feeding.</notes>
+        </vital>
+        <vital>
+            <stat>Rest</stat>
+            <baseMax>100</baseMax>
+            <observedMax>168</observedMax>
+            <notes>Rest can exceed 100 (over-rested state). Values above 100 may indicate extended sleep or rest bonuses.</notes>
+        </vital>
+        <vital>
+            <stat>Mood</stat>
+            <baseMax>100</baseMax>
+            <observedMax>110</observedMax>
+            <notes>Mood can be boosted above 100 through positive events, traits, or environment bonuses.</notes>
+        </vital>
+        <vital>
+            <stat>Oxygen</stat>
+            <baseMax>100</baseMax>
+            <observedMax>0</observedMax>
+            <notes>All crew showing 0 because they are inside ship with functional life support. Value would increase in oxygen-deprived environments.</notes>
+        </vital>
+        <vital>
+            <stat>Temperature</stat>
+            <baseMax>100</baseMax>
+            <observedMax>100</observedMax>
+            <notes>All crew at 100 = comfortable temperature. Values would change in extreme heat/cold environments.</notes>
+        </vital>
+        <vital>
+            <stat>Comfort</stat>
+            <baseMax>100</baseMax>
+            <observedMax>100</observedMax>
+            <notes>Comfort level based on environment quality. Likely caps at 100.</notes>
+        </vital>
+        <vital>
+            <stat>Energy</stat>
+            <baseMax>100</baseMax>
+            <observedMax>null</observedMax>
+            <notes>Energy stat not observed in current save file. May be added in future game versions or specific scenarios.</notes>
+        </vital>
+    </crewVitalMaxValues>
 </mappings>

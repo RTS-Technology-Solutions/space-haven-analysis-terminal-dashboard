@@ -19,7 +19,7 @@ export default function DevDashboard() {
   const [targetPath, setTargetPath] = useState<string>('game_20260605_1841.xml')
 
   // Selection state for each hierarchy level
-  const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null)
+  const [selectedSystemId, setSelectedSystemId] = useState<number | string | null>(null)
   const [selectedSectorId, setSelectedSectorId] = useState<string | null>(null)
   const [selectedShipId, setSelectedShipId] = useState<string | null>(null)
   const [selectedCrewId, setSelectedCrewId] = useState<string | null>(null)
@@ -111,17 +111,10 @@ export default function DevDashboard() {
       
       setGameSession(session)
       
-      // Auto-select first system if available
-      if (session.starSystems.length > 0) {
-        setSelectedSystemId(session.starSystems[0].systemId)
-      }
+      // Don't auto-select system - let user follow guided flow
+      // User should select system → ship → crew in order
       
-      // Auto-select first player ship if available
-      const playerShip = session.ships.find(s => s.isPlayerOwned)
-      if (playerShip) {
-        setSelectedShipId(playerShip.shipId)
-        console.log('🎮 Auto-selected player ship:', playerShip.shipName)
-      }
+      console.log('🎮 Game session loaded - ready for guided navigation')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load example file')
       console.error('❌ Load error:', err)
@@ -141,13 +134,21 @@ export default function DevDashboard() {
   }
 
   // Get selected entities
-  const selectedSystem = gameSession?.starSystems.find(s => s.systemId === selectedSystemId)
+  const selectedSystem = gameSession?.starSystems.find(s => s.systemId == selectedSystemId)  // Use == for type coercion
   const selectedShip = gameSession?.ships.find(s => s.shipId === selectedShipId)
   const selectedCrewMember = selectedShip?.crew.find(c => c.crewId === selectedCrewId)
 
   // Calculate derived stats
   const playerShipsCount = gameSession?.ships.filter(s => s.isPlayerOwned).length || 0
   const otherShipsCount = gameSession?.ships.filter(s => !s.isPlayerOwned).length || 0
+  
+  // Detect player's current system (where player-owned ship is located)
+  const playerCurrentSystemId = gameSession?.ships.find(s => s.isPlayerOwned)?.systemId
+  
+  // Calculate ship counts per system for dropdown display
+  const getShipCountForSystem = (systemId: string | number) => {
+    return gameSession?.ships.filter(s => s.systemId == systemId).length || 0  // Use == for type coercion
+  }
   const totalCrewCount = gameSession?.ships
     .filter(s => s.isPlayerOwned)
     .reduce((sum, s) => sum + s.crew.length, 0) || 0
@@ -277,11 +278,11 @@ export default function DevDashboard() {
           <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
             Loaded: {gameSession.timestamp.toLocaleString()} | 
             Ships: <span style={{ color: 'var(--accent-green)' }}>{playerShipsCount}</span>
-            <span style={{ opacity: 0.6 }}> ({gameSession.ships.length})</span> | 
+            <span style={{ opacity: 0.6 }}> ({otherShipsCount})</span> | 
             Crew: <span style={{ color: 'var(--accent-green)' }}>{totalCrewCount}</span>
-            <span style={{ opacity: 0.6 }}> ({totalCrewCount + otherCrewCount})</span> | 
+            <span style={{ opacity: 0.6 }}> ({otherCrewCount})</span> | 
             Systems: <span style={{ color: 'var(--accent-green)' }}>{visitedSystemsCount}</span>
-            <span style={{ opacity: 0.6 }}> ({gameSession.starSystems.length})</span>
+            <span style={{ opacity: 0.6 }}> ({unexploredSystemsCount})</span>
           </p>
         </div>
         <button onClick={handleReset} className="btn-terminal" style={{
@@ -346,15 +347,15 @@ export default function DevDashboard() {
             <div className="stat-label">
               Star Systems
               <MetricTooltip
-                title="Star Systems (Visited / Total)"
+                title="Star Systems (Visited / Unexplored)"
                 why="So that you understand how much of the map is covered and can plan your next hyperjump"
-                how="Visited count from systems where visited=true, total from all discovered systems in save file"
+                how="Visited count from systems where visited=true, unexplored count from systems where visited=false"
                 what="Plan your next hyperjump or perform resource gathering in new unexplored systems"
               />
             </div>
             <div className="stat-value">
               <span style={{ color: 'var(--accent-green)' }}>{visitedSystemsCount}</span>
-              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({gameSession.starSystems.length})</span>
+              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({unexploredSystemsCount})</span>
             </div>
           </div>
 
@@ -362,15 +363,15 @@ export default function DevDashboard() {
             <div className="stat-label">
               Ships
               <MetricTooltip
-                title="Ships (Player / Total)"
+                title="Ships (Player / Other)"
                 why="So that you can manage your fleet and identify trading or combat opportunities with other vessels"
-                how="Player ships from <settings owner='Player'>, total from all <ship> elements with ownerId (faction ID) in save file"
+                how="Player ships from <settings owner='Player'>, other ships from <settings owner!='Player'> (e.g., Civilian, Enemy)"
                 what="Focus on your player ships for crew and resource management, or locate trade stations and allied vessels"
               />
             </div>
             <div className="stat-value">
               <span style={{ color: 'var(--accent-green)' }}>{playerShipsCount}</span>
-              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({gameSession.ships.length})</span>
+              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({otherShipsCount})</span>
             </div>
           </div>
 
@@ -378,15 +379,15 @@ export default function DevDashboard() {
             <div className="stat-label">
               Crew Members
               <MetricTooltip
-                title="Crew Members (Player / Total)"
+                title="Crew Members (Player / Other)"
                 why="So that you can monitor your colonist population and identify NPC traders or potential crew recruitment opportunities"
-                how="Player crew from <characters> in player ships, total from all <c> (character) elements across all ships"
+                how="Player crew from <characters> in player-owned ships, other crew from <characters> in non-player ships"
                 what="Manage your colonists' health, mood, and skills, or identify traders and station operators for commerce"
               />
             </div>
             <div className="stat-value">
               <span style={{ color: 'var(--accent-green)' }}>{totalCrewCount}</span>
-              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({totalCrewCount + otherCrewCount})</span>
+              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({otherCrewCount})</span>
             </div>
           </div>
         </div>
@@ -417,14 +418,18 @@ export default function DevDashboard() {
             >
               <option value="">-- Select System --</option>
               {gameSession.starSystems
-                .filter(system => system.systemId !== 0 && system.systemId !== '0')
+                .filter(system => system.systemId !== 0)
                 .filter(system => system.visited === true)
                 .filter(system => system.systemName && system.systemName.trim() !== '')
-                .map(system => (
-                  <option key={system.systemId} value={system.systemId}>
-                    {system.systemName || `System ${system.systemId}`}
-                  </option>
-                ))}
+                .map(system => {
+                  const shipCount = getShipCountForSystem(system.systemId)
+                  const isPlayerHere = system.systemId == playerCurrentSystemId  // Use == for type coercion
+                  return (
+                    <option key={system.systemId} value={system.systemId}>
+                      {isPlayerHere ? '👤 ' : ''}{system.systemName || `System ${system.systemId}`} ({shipCount} {shipCount === 1 ? 'ship' : 'ships'})
+                    </option>
+                  )
+                })}
             </select>
           </div>
 
@@ -456,7 +461,7 @@ export default function DevDashboard() {
       {/* ================================================================ */}
       <TerminalPanel title="🚀 LEVEL 3: SHIP DATA">
         <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
-          Local object viewpoint - Ship systems, crew, and condition stats
+          Local object viewpoint - Select a star system first, then choose a ship to view its systems and crew. Number shows crew count.
         </p>
 
         <div className="selector-wrapper">
@@ -470,18 +475,18 @@ export default function DevDashboard() {
               setSelectedShipId(e.target.value || null)
               setSelectedCrewId(null)
             }}
+            disabled={!selectedSystemId}
           >
-            <option value="">-- Select Ship --</option>
-            {gameSession.ships
-              .filter(ship => {
-                // If no system selected, show all ships
-                if (!selectedSystemId) return true
-                // Filter by system if ship has systemId
-                return !ship.systemId || ship.systemId === selectedSystemId
-              })
+            <option value="">
+              {!selectedSystemId 
+                ? '-- Select a Star System First --' 
+                : '-- Select Ship --'}
+            </option>
+            {selectedSystemId && gameSession.ships
+              .filter(ship => ship.systemId == selectedSystemId)  // Use == for type coercion
               .map(ship => (
               <option key={ship.shipId} value={ship.shipId}>
-                {ship.shipName} {ship.isPlayerOwned ? '👤 (Player)' : '🤖'}
+                {ship.shipName} ({ship.crew.length} {ship.crew.length === 1 ? 'crew' : 'crew'}) {ship.isPlayerOwned ? '👤' : '🤖'}
               </option>
             ))}
           </select>
@@ -613,37 +618,45 @@ export default function DevDashboard() {
       </TerminalPanel>
 
       {/* ================================================================ */}
-      {/* LEVEL 4: CREW (Only shows after ship selected)                  */}
+      {/* LEVEL 4: CREW (Always visible, guided by disabled dropdown)     */}
       {/* ================================================================ */}
-      {selectedShipId && selectedShip && selectedShip.crew.length > 0 && (
-        <TerminalPanel title="👤 LEVEL 4: CREW DATA">
-          <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
-            Individual viewpoint - Crew skills, status, and conditions
-          </p>
+      <TerminalPanel title="👤 LEVEL 4: CREW DATA">
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
+          Individual viewpoint - Select a ship first to view crew members. Choose a crew member to see their skills, health, and job assignments.
+        </p>
 
-          <div className="selector-wrapper">
-            <label className="selector-label">
-              Select Crew Member:
-            </label>
-            <select
-              className="selector-dropdown"
-              value={selectedCrewId || ''}
-              onChange={(e) => setSelectedCrewId(e.target.value || null)}
-            >
-              <option value="">-- Select Crew --</option>
-              {selectedShip.crew
-                .filter(crew => crew.name !== 'Unknown' && crew.name.trim() !== '')
-                .map(crew => (
-                  <option key={crew.crewId} value={crew.crewId}>
-                    {crew.name} {crew.lastName}
-                  </option>
-                ))}
-            </select>
-          </div>
+        <div className="selector-wrapper">
+          <label className="selector-label">
+            Select Crew Member:
+          </label>
+          <select
+            className="selector-dropdown"
+            value={selectedCrewId || ''}
+            onChange={(e) => setSelectedCrewId(e.target.value || null)}
+            disabled={!selectedShipId || !selectedShip || selectedShip.crew.length === 0}
+          >
+            <option value="">
+              {!selectedShipId 
+                ? '-- Select a Ship First --'
+                : !selectedShip
+                  ? '-- Loading Ship Data --'
+                  : selectedShip.crew.length === 0 
+                    ? '-- No Crew on This Ship --' 
+                    : '-- Select Crew --'}
+            </option>
+            {selectedShipId && selectedShip?.crew
+              .filter(crew => crew.name !== 'Unknown' && crew.name.trim() !== '')
+              .map(crew => (
+                <option key={crew.crewId} value={crew.crewId}>
+                  {crew.name} {crew.lastName}
+                </option>
+              ))}
+          </select>
+        </div>
 
-          {selectedCrewMember && (
-            <>
-              {/* Crew Overview */}
+        {selectedCrewMember && (
+          <>
+            {/* Crew Overview */}
               <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginTop: 'var(--space-lg)', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
                 Crew Profile
               </h3>
@@ -735,10 +748,9 @@ export default function DevDashboard() {
                   </div>
                 </>
               )}
-            </>
-          )}
-        </TerminalPanel>
-      )}
+          </>
+        )}
+      </TerminalPanel>
 
       {/* Dev Data Inspector */}
       <div style={{ 
@@ -763,7 +775,15 @@ export default function DevDashboard() {
             <button
               onClick={(e) => {
                 e.preventDefault()
-                const dataStr = JSON.stringify(gameSession, null, 2)
+                // Custom replacer to properly serialize Date objects and other types
+                const replacer = (_key: string, value: any) => {
+                  // Convert Date objects to ISO strings for readability
+                  if (value instanceof Date) {
+                    return value.toISOString()
+                  }
+                  return value
+                }
+                const dataStr = JSON.stringify(gameSession, replacer, 2)
                 const blob = new Blob([dataStr], { type: 'application/json' })
                 const url = URL.createObjectURL(blob)
                 const a = document.createElement('a')
@@ -779,7 +799,8 @@ export default function DevDashboard() {
                 padding: '0.5rem 1rem',
                 fontSize: '0.85rem',
                 background: 'var(--accent-cyan)',
-                borderColor: 'var(--accent-cyan)'
+                borderColor: 'var(--accent-cyan)',
+                color: 'var(--bg-primary)'
               }}
             >
               💾 Download JSON

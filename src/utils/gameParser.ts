@@ -27,7 +27,69 @@ export class SpaceHavenParser {
       skillMappings: config?.skillMappings || DEFAULT_SKILL_MAPPINGS,
       itemMappings: config?.itemMappings || {},
       traitMappings: config?.traitMappings || {},
-      occupationMappings: config?.occupationMappings || {}
+      occupationMappings: config?.occupationMappings || {},
+      elementMaxValues: config?.elementMaxValues || {},
+      crewVitalMaxValues: config?.crewVitalMaxValues || {}
+    }
+  }
+  
+  /**
+   * Load element and crew max values from id_mappings.xml
+   * This provides the reference dictionary for calculating health/stat percentages
+   */
+  async loadMaxValueMappings(): Promise<void> {
+    try {
+      const response = await fetch('/id_mappings.xml')
+      if (!response.ok) {
+        console.warn('⚠️ Could not load id_mappings.xml - using defaults')
+        return
+      }
+      
+      const xmlText = await response.text()
+      const parser = new DOMParser()
+      const xmlDoc = parser.parseFromString(xmlText, 'text/xml')
+      
+      // Parse element max values
+      const elementNodes = xmlDoc.querySelectorAll('elementMaxValues > element')
+      elementNodes.forEach(node => {
+        const htmlNode = node as HTMLElement
+        const moduleType = parseInt(htmlNode.querySelector('moduleType')?.textContent || '0')
+        const name = htmlNode.querySelector('name')?.textContent || 'Unknown'
+        const maxHullHealth = parseInt(htmlNode.querySelector('maxHullHealth')?.textContent || '12')
+        const maxShieldStrength = parseInt(htmlNode.querySelector('maxShieldStrength')?.textContent || '32')
+        const notes = htmlNode.querySelector('notes')?.textContent
+        
+        this.config.elementMaxValues[moduleType] = {
+          moduleType,
+          name,
+          maxHullHealth,
+          maxShieldStrength,
+          notes
+        }
+      })
+      
+      // Parse crew vital max values
+      const vitalNodes = xmlDoc.querySelectorAll('crewVitalMaxValues > vital')
+      vitalNodes.forEach(node => {
+        const htmlNode = node as HTMLElement
+        const stat = htmlNode.querySelector('stat')?.textContent || ''
+        const baseMax = parseInt(htmlNode.querySelector('baseMax')?.textContent || '100')
+        const observedMaxText = htmlNode.querySelector('observedMax')?.textContent
+        const observedMax = observedMaxText === 'null' ? null : parseInt(observedMaxText || '100')
+        const notes = htmlNode.querySelector('notes')?.textContent
+        
+        this.config.crewVitalMaxValues[stat.toLowerCase()] = {
+          stat,
+          baseMax,
+          observedMax,
+          notes
+        }
+      })
+      
+      console.log(`✓ Loaded element max values for ${Object.keys(this.config.elementMaxValues).length} module types`)
+      console.log(`✓ Loaded crew vital max values for ${Object.keys(this.config.crewVitalMaxValues).length} stats`)
+    } catch (error) {
+      console.error('❌ Error loading id_mappings.xml:', error)
     }
   }
   
@@ -74,8 +136,11 @@ export class SpaceHavenParser {
     // Extract hierarchical components
     console.log(`\n🔍 Beginning extraction...`)
     
+    // CRITICAL: Build ship-to-system mapping from starmap before extracting ships
+    const shipSystemMap = this.buildShipSystemMap(root)
+    
     // Extract ships and assign crew from each ship's <characters> section
-    gameSession.ships = this.extractShips(root)
+    gameSession.ships = this.extractShips(root, shipSystemMap)
     gameSession.starSystems = this.extractStarSystems(root)
     gameSession.factionRelations = this.extractFactionRelations(root)
     
@@ -188,10 +253,65 @@ export class SpaceHavenParser {
   }
   
   // ==========================================================================
+  // SHIP-TO-SYSTEM MAPPING
+  // ==========================================================================
+  
+  /**
+   * Build a mapping of shipId -> systemId from the starmap structure
+   * Ships are nested as: <starmap><systems><l systemId="31"><sectors><l><fleets><f><createdShips><l createdShipId="43"/>
+   */
+  private buildShipSystemMap(root: HTMLElement): Map<string, string | number> {
+    const shipSystemMap = new Map<string, string | number>()
+    
+    const starmapNodes = root.getElementsByTagName('starmap')
+    if (starmapNodes.length === 0) {
+      console.log('⚠️ No <starmap> element found - ships will not have system associations')
+      return shipSystemMap
+    }
+    
+    const starmapNode = starmapNodes[0] as HTMLElement
+    const systemsContainers = starmapNode.getElementsByTagName('systems')
+    if (systemsContainers.length === 0) {
+      console.log('⚠️ No <systems> element in starmap')
+      return shipSystemMap
+    }
+    
+    const systemsContainer = systemsContainers[0] as HTMLElement
+    const systemNodes = Array.from(systemsContainer.getElementsByTagName('l'))
+    
+    systemNodes.forEach(systemNode => {
+      const systemElem = systemNode as HTMLElement
+      const systemIdAttr = systemElem.getAttribute('systemId')
+      if (!systemIdAttr) return
+      
+      // Parse systemId as integer to match StarSystem.systemId type
+      const systemId = parseInt(systemIdAttr, 10)
+      if (isNaN(systemId)) return
+      
+      // Find all created ships within this system (in fleets)
+      const fleetNodes = systemElem.getElementsByTagName('f')
+      Array.from(fleetNodes).forEach(fleetNode => {
+        const fleetElem = fleetNode as HTMLElement
+        const shipNodes = fleetElem.getElementsByTagName('l')  // Ships in <createdShips><l>
+        Array.from(shipNodes).forEach(shipNode => {
+          const shipElem = shipNode as HTMLElement
+          const createdShipId = shipElem.getAttribute('createdShipId')
+          if (createdShipId) {
+            shipSystemMap.set(createdShipId, systemId)
+          }
+        })
+      })
+    })
+    
+    console.log(`🗺️ Built ship-to-system mapping: ${shipSystemMap.size} ships mapped to systems`)
+    return shipSystemMap
+  }
+  
+  // ==========================================================================
   // SHIP & ELEMENT EXTRACTION
   // ==========================================================================
   
-  private extractShips(root: HTMLElement): Ship[] {
+  private extractShips(root: HTMLElement, shipSystemMap: Map<string, string | number>): Ship[] {
     const ships: Ship[] = []
     
     console.log(`🚢 Searching for ships...`)
@@ -261,10 +381,12 @@ export class SpaceHavenParser {
       // Determine ownership from <settings> tag
       // 'owner' attribute = owner TYPE ("Player", "Civilian", "Pirate", etc.)
       // 'of' attribute = owner faction ID (numeric identifier)
+      // CRITICAL: Use querySelectorAll with :scope to get ONLY direct child <settings>,
+      // not nested <settings> tags that may exist inside the main settings tag
       let ownerType = 'Unknown'
       let ownerId = 'unknown'
       let isPlayerOwned = false
-      const settingsNodes = shipElem.getElementsByTagName('settings')
+      const settingsNodes = shipElem.querySelectorAll(':scope > settings')
       if (settingsNodes.length > 0) {
         const settingsNode = settingsNodes[0] as HTMLElement
         ownerType = settingsNode.getAttribute('owner') || 'Unknown'
@@ -272,13 +394,16 @@ export class SpaceHavenParser {
         isPlayerOwned = ownerType === 'Player'  // Player-controlled ships have owner="Player"
       }
       
+      // Look up system ID from starmap (ships don't have direct systemId attribute)
+      const systemId = shipSystemMap.get(shipId)
+      
       const ship: Ship = {
         shipId,
         shipName: shipElem.getAttribute('sname') || `Ship_${shipId}`,
         shipType: this.inferShipType(shipElem),
         positionX: this.safeFloat(shipElem, 'sx'),
         positionY: this.safeFloat(shipElem, 'sy'),
-        systemId: shipElem.getAttribute('ssid') || undefined,  // Star system ID
+        systemId: systemId,  // Looked up from starmap structure
         ownerId,
         isPlayerOwned,
         elements: [],
@@ -338,12 +463,31 @@ export class SpaceHavenParser {
       const y = this.safeInt(elemHtml, 'y')
       const moduleType = this.safeInt(elemHtml, 'm')
       
+      // CRITICAL: Skip unconstructed/empty hull sections (m="-2" or negative)
+      // These represent planned but not-yet-built sections of the ship
+      if (moduleType < 0) {
+        return  // Skip this element
+      }
+      
       // Get human-readable name from ID mapper
       const moduleName = this.getItemName(moduleType.toString(), `Element_${moduleType}`)
       
       // Extract raw attributes from XML - no calculations or assumptions
       const hullHealth = elemHtml.hasAttribute('ht') ? this.safeInt(elemHtml, 'ht') : undefined
       const shieldStrength = elemHtml.hasAttribute('sh') ? this.safeInt(elemHtml, 'sh') : undefined
+      
+      // Get max values from mappings for this module type
+      const maxValues = this.config.elementMaxValues[moduleType]
+      const maxHullHealth = maxValues?.maxHullHealth
+      const maxShieldStrength = maxValues?.maxShieldStrength
+      
+      // Calculate percentages if we have both current and max values
+      const hullHealthPercent = (hullHealth !== undefined && maxHullHealth) 
+        ? (hullHealth / maxHullHealth) * 100 
+        : undefined
+      const shieldStrengthPercent = (shieldStrength !== undefined && maxShieldStrength)
+        ? (shieldStrength / maxShieldStrength) * 100
+        : undefined
       
       const element: GameElement = {
         elementId: moduleType,
@@ -352,7 +496,11 @@ export class SpaceHavenParser {
         moduleType,
         moduleName,
         hullHealth,
+        maxHullHealth,
+        hullHealthPercent,
         shieldStrength,
+        maxShieldStrength,
+        shieldStrengthPercent,
         inventory: [],
         consumableInventory: []
       }
@@ -594,7 +742,9 @@ export class SpaceHavenParser {
     if (charactersNodes.length === 0) return crew
     
     const charactersNode = charactersNodes[0] as HTMLElement
-    const charNodes = Array.from(charactersNode.getElementsByTagName('c'))
+    // IMPORTANT: Only get DIRECT child <c> tags, not nested ones (conditions, prefs, etc.)
+    // Use querySelectorAll with :scope to get only immediate children
+    const charNodes = Array.from(charactersNode.querySelectorAll(':scope > c'))
     
     charNodes.forEach(charNode => {
       const htmlChar = charNode as HTMLElement
@@ -832,22 +982,21 @@ export class SpaceHavenParser {
       }
     }
     
-    // Calculate hull integrity from raw hullHealth values
-    // Note: We don't know what "full health" is without definitions,
-    // so we can only count elements that have health data
+    // Calculate hull integrity using the percentage values from id_mappings.xml
+    // Each element has hullHealthPercent calculated from (current / max) * 100
+    // We average the percentages of all elements that have health tracking
     let elementsWithHealth = 0
-    let totalHealth = 0
+    let totalHealthPercent = 0
     
     elements.forEach(elem => {
-      if (elem.hullHealth !== undefined) {
+      if (elem.hullHealthPercent !== undefined) {
         elementsWithHealth++
-        totalHealth += elem.hullHealth
+        totalHealthPercent += elem.hullHealthPercent
       }
     })
     
-    // Simple average health as percentage (assuming max is around 100-200 based on typical values)
-    const avgHealth = elementsWithHealth > 0 ? totalHealth / elementsWithHealth : 100
-    const hullIntegrity = Math.min(100, avgHealth)  // Cap at 100%
+    // Average hull health percentage across all elements with health tracking
+    const hullIntegrity = elementsWithHealth > 0 ? totalHealthPercent / elementsWithHealth : 100
     
     // Calculate power efficiency
     const totalPower = ship.powerGrid.generators.reduce((sum, g) => sum + (g.powerOutput || 0), 0)
@@ -921,5 +1070,10 @@ export const gameParser = new SpaceHavenParser()
 export async function createParserWithMappings(): Promise<SpaceHavenParser> {
   const { getParserConfig } = await import('./mappingsLoader')
   const config = await getParserConfig()
-  return new SpaceHavenParser(config)
+  const parser = new SpaceHavenParser(config)
+  
+  // Load element and crew max values from id_mappings.xml
+  await parser.loadMaxValueMappings()
+  
+  return parser
 }

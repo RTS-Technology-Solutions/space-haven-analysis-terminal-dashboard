@@ -30,7 +30,7 @@ export interface Ship {
   shipType: 'ship' | 'station'
   positionX: number
   positionY: number
-  systemId?: string  // Star system this ship is located in
+  systemId?: number  // Star system this ship is located in (matches StarSystem.systemId type)
   ownerId?: string  // Faction ID of the ship owner
   isPlayerOwned?: boolean  // Convenience flag
   
@@ -51,9 +51,14 @@ export interface Element {
   moduleType: number  // ID from id_mappings.xml
   moduleName: string  // Human-readable name
   
-  // Component state (raw from XML)
-  hullHealth?: number  // 'ht' attribute - may not be present
-  shieldStrength?: number  // 'sh' attribute - may not be present
+  // Component state (raw absolute values from XML, NOT percentages)
+  hullHealth?: number  // 'ht' attribute - raw value (e.g., 4, 12, etc.)
+  maxHullHealth?: number  // Max health for this module type from id_mappings
+  hullHealthPercent?: number  // Calculated: (hullHealth / maxHullHealth) * 100
+  
+  shieldStrength?: number  // 'sh' attribute - raw value (e.g., 32, 144, etc.)
+  maxShieldStrength?: number  // Max shield for this module type from id_mappings
+  shieldStrengthPercent?: number  // Calculated: (shieldStrength / maxShieldStrength) * 100
   
   // Inventory (if element has storage)
   inventory: InventoryItem[]
@@ -146,13 +151,16 @@ export interface CrewMember {
   y: number
   currentTask: string
   
-  // Vital statistics (0-100 scale)
-  health: number
-  food: number
-  rest: number
-  mood: number
-  oxygen: number
-  temperature: number
+  // Vital statistics (raw absolute values, NOT percentages)
+  // Values can exceed 100 based on traits, upgrades, and game progression
+  health: number  // Raw value (e.g., 80, 120, 140)
+  food: number  // Raw value (typically caps at 100)
+  rest: number  // Raw value (can exceed 100 when over-rested)
+  mood: number  // Raw value (can exceed 100 with bonuses)
+  oxygen: number  // 0 = inside ship with life support
+  temperature: number  // 100 = comfortable
+  comfort?: number  // Raw comfort level
+  energy?: number  // Raw energy level (may not be present in all saves)
   
   // Skills and jobs
   skills: Skill[]
@@ -300,6 +308,25 @@ export interface ParserConfig {
   itemMappings: Record<string, string>
   traitMappings: Record<string, string>
   occupationMappings: Record<string, string>
+  elementMaxValues: Record<number, ElementMaxValues>  // Module type -> max values
+  crewVitalMaxValues: Record<string, VitalMaxValues>  // Stat name -> max values
+}
+
+// Max values for element health/shields by module type
+export interface ElementMaxValues {
+  moduleType: number
+  name: string
+  maxHullHealth: number
+  maxShieldStrength: number
+  notes?: string
+}
+
+// Max values for crew vital statistics
+export interface VitalMaxValues {
+  stat: string
+  baseMax: number
+  observedMax: number | null
+  notes?: string
 }
 
 export const DEFAULT_SKILL_MAPPINGS: Record<number, string> = {
