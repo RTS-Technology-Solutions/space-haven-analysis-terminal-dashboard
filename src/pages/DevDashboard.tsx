@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import TerminalPanel from '../components/ui/TerminalPanel'
 import MetricTooltip from '../components/MetricTooltip'
 import JsonTreeViewer from '../components/JsonTreeViewer'
+import DebugInfo from '../components/DebugInfo'
+import DataSharingConsent from '../components/DataSharingConsent'
 import { createParserWithMappings } from '../utils/gameParser'
 import type { GameSession } from '../types/gameData'
 import './BetaDashboard.css' // Reuse beta styles
+import '../components/DebugInfo.css' // Debug mode styles
 
 /**
  * Dev Dashboard - Real Data Testing Version of Beta Wireframe
@@ -18,10 +21,32 @@ export default function DevDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [targetPath, setTargetPath] = useState<string>('game_20260605_1841.xml')
 
+  // Original XML storage for snapshot capture
+  const [originalXmlText, setOriginalXmlText] = useState<string | null>(null)
+  const [originalFileName, setOriginalFileName] = useState<string | null>(null)
+
   // Selection state for each hierarchy level
   const [selectedSystemId, setSelectedSystemId] = useState<number | string | null>(null)
   const [selectedShipId, setSelectedShipId] = useState<string | null>(null)
   const [selectedCrewId, setSelectedCrewId] = useState<string | null>(null)
+
+  // Debug mode state
+  const [debugMode, setDebugMode] = useState(false)
+
+  // Snapshot consent state
+  const [showConsentDialog, setShowConsentDialog] = useState(false)
+
+  // Apply debug mode body class
+  useEffect(() => {
+    if (debugMode) {
+      document.body.classList.add('debug-mode')
+    } else {
+      document.body.classList.remove('debug-mode')
+    }
+    return () => {
+      document.body.classList.remove('debug-mode')
+    }
+  }, [debugMode])
 
   // File upload handler
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,6 +61,10 @@ export default function DevDashboard() {
       console.log('🔧 Starting parse of', file.name)
       const text = await file.text()
       console.log('📄 File size:', text.length, 'bytes')
+      
+      // Store original XML for snapshot capture
+      setOriginalXmlText(text)
+      setOriginalFileName(file.name)
       
       // Create parser with id_mappings.xml loaded
       const parser = await createParserWithMappings()
@@ -92,6 +121,10 @@ export default function DevDashboard() {
       const text = await response.text()
       console.log('📄 File size:', text.length, 'bytes')
       
+      // Store original XML for snapshot capture
+      setOriginalXmlText(text)
+      setOriginalFileName(exampleFileName)
+      
       // Create parser with id_mappings.xml loaded
       const parser = await createParserWithMappings()
       const session = await parser.parseGameSave(text, exampleFileName)
@@ -129,6 +162,144 @@ export default function DevDashboard() {
     setSelectedCrewId(null)
     setError(null)
     setTargetPath('game_20260605_1841.xml')
+    setOriginalXmlText(null)
+    setOriginalFileName(null)
+  }
+
+  // Snapshot capture functions
+  const captureHtmlSnapshot = (): string => {
+    // Capture the current page HTML
+    const dashboardElement = document.querySelector('.dashboard-page')
+    if (!dashboardElement) {
+      return '<html><body><p>Error: Could not capture dashboard HTML</p></body></html>'
+    }
+
+    // Clone the element to avoid modifying the live DOM
+    const clone = dashboardElement.cloneNode(true) as HTMLElement
+
+    // Remove interactive elements that don't make sense in a snapshot
+    clone.querySelectorAll('button, input, select').forEach(el => {
+      el.setAttribute('disabled', 'true')
+    })
+
+    // Build complete HTML document
+    const htmlSnapshot = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Haven Insights - Snapshot ${new Date().toISOString()}</title>
+  <style>
+    /* Inline critical styles for standalone viewing */
+    body { margin: 0; padding: 20px; background: #0a0a0a; color: #e0e0e0; font-family: monospace; }
+    .dashboard-page { max-width: 1400px; margin: 0 auto; }
+    .stat-box { border: 1px solid #00ffff; padding: 10px; margin: 5px; background: rgba(0,255,255,0.05); }
+    .stat-label { color: #00ffff; font-size: 0.8rem; }
+    .stat-value { color: #fff; font-size: 1.2rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div style="background: rgba(255,0,0,0.1); border: 2px solid #ff0000; padding: 15px; margin-bottom: 20px;">
+    <h2 style="color: #ff0000; margin: 0;">📸 SNAPSHOT CAPTURE</h2>
+    <p style="margin: 5px 0 0 0;">This is a static HTML snapshot captured at: ${new Date().toLocaleString()}</p>
+    <p style="margin: 5px 0 0 0;">Original save file: ${originalFileName || 'Unknown'}</p>
+  </div>
+  ${clone.outerHTML}
+</body>
+</html>`
+
+    return htmlSnapshot
+  }
+
+  const handleCreateSnapshot = () => {
+    // Show consent dialog first
+    setShowConsentDialog(true)
+  }
+
+  const handleConsentAccept = () => {
+    setShowConsentDialog(false)
+    
+    if (!gameSession || !originalXmlText || !originalFileName) {
+      alert('Error: No game data loaded. Please load a save file first.')
+      return
+    }
+
+    try {
+      console.log('📸 Creating snapshot package...')
+
+      // 1. Prepare XML file
+      const xmlBlob = new Blob([originalXmlText], { type: 'text/xml' })
+      
+      // 2. Prepare JSON file
+      const replacer = (_key: string, value: any) => {
+        if (value instanceof Date) {
+          return value.toISOString()
+        }
+        return value
+      }
+      const jsonText = JSON.stringify(gameSession, replacer, 2)
+      const jsonBlob = new Blob([jsonText], { type: 'application/json' })
+      
+      // 3. Capture HTML snapshot
+      const htmlText = captureHtmlSnapshot()
+      const htmlBlob = new Blob([htmlText], { type: 'text/html' })
+
+      // 4. Create metadata file
+      const metadata = {
+        captureTimestamp: new Date().toISOString(),
+        originalFileName: originalFileName,
+        parsedSessionInfo: {
+          saveFileName: gameSession.saveFileName,
+          timestamp: gameSession.timestamp,
+          daysSurvived: gameSession.daysSurvived,
+          shipsCount: gameSession.ships.length,
+          crewCount: gameSession.ships.reduce((sum, s) => sum + s.crew.length, 0),
+          systemsCount: gameSession.starSystems.length
+        },
+        debugModeActive: debugMode,
+        userAgent: navigator.userAgent,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        purpose: 'Debugging and research - submitted with user consent'
+      }
+      const metadataText = JSON.stringify(metadata, null, 2)
+      const metadataBlob = new Blob([metadataText], { type: 'application/json' })
+
+      // Download all files (in future, this could upload to cloud)
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19)
+      const baseName = originalFileName.replace('.xml', '')
+      
+      // Create download links for each file
+      const downloads = [
+        { blob: xmlBlob, name: `${baseName}_original.xml` },
+        { blob: jsonBlob, name: `${baseName}_parsed.json` },
+        { blob: htmlBlob, name: `${baseName}_snapshot.html` },
+        { blob: metadataBlob, name: `${baseName}_metadata.json` }
+      ]
+
+      console.log('📦 Downloading snapshot package:')
+      downloads.forEach(({ blob, name }) => {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `snapshot_${timestamp}_${name}`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        console.log(`  ✅ Downloaded: ${name}`)
+      })
+
+      alert(`✅ Snapshot package created successfully!\n\n4 files downloaded:\n- Original XML\n- Parsed JSON\n- HTML Snapshot\n- Metadata\n\nThese files can be shared for debugging or research purposes.`)
+      
+    } catch (err) {
+      console.error('❌ Snapshot creation failed:', err)
+      alert(`Error creating snapshot: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    }
+  }
+
+  const handleConsentDecline = () => {
+    setShowConsentDialog(false)
+    console.log('ℹ️ User declined data sharing consent')
   }
 
   // Get selected entities
@@ -284,13 +455,49 @@ export default function DevDashboard() {
             <span style={{ opacity: 0.6 }}> ({unexploredSystemsCount})</span>
           </p>
         </div>
-        <button onClick={handleReset} className="btn-terminal" style={{
-          background: 'var(--accent-red)',
-          borderColor: 'var(--accent-red)'
-        }}>
-          🔄 RESET & UPLOAD NEW
-        </button>
+        <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center' }}>
+          <button 
+            onClick={() => setDebugMode(!debugMode)} 
+            className="btn-terminal" 
+            style={{
+              background: debugMode 
+                ? 'linear-gradient(135deg, var(--accent-red) 0%, var(--accent-yellow) 100%)' 
+                : 'rgba(255, 165, 0, 0.2)',
+              borderColor: debugMode ? 'var(--accent-red)' : 'var(--accent-yellow)',
+              color: debugMode ? '#000' : 'var(--accent-yellow)',
+              fontWeight: 'bold'
+            }}
+          >
+            {debugMode ? '🐛 DEBUG ON' : '🔍 DEBUG OFF'}
+          </button>
+          <button 
+            onClick={handleCreateSnapshot}
+            className="btn-terminal" 
+            style={{
+              background: 'linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%)',
+              borderColor: 'var(--accent-cyan)',
+              color: '#000',
+              fontWeight: 'bold'
+            }}
+            title="Create a snapshot package for debugging or research sharing"
+          >
+            📸 SNAPSHOT
+          </button>
+          <button onClick={handleReset} className="btn-terminal" style={{
+            background: 'var(--accent-red)',
+            borderColor: 'var(--accent-red)'
+          }}>
+            🔄 RESET & UPLOAD NEW
+          </button>
+        </div>
       </div>
+
+      {/* Data Sharing Consent Dialog */}
+      <DataSharingConsent
+        isOpen={showConsentDialog}
+        onAccept={handleConsentAccept}
+        onDecline={handleConsentDecline}
+      />
 
       {/* ================================================================ */}
       {/* LEVEL 1: GAME DATA (Always visible, no selector)                */}
@@ -314,18 +521,27 @@ export default function DevDashboard() {
             <div className="stat-value" style={{ fontSize: '1rem' }}>{gameSession.saveFileName}</div>
           </div>
 
-          <div className="stat-box">
-            <div className="stat-label">
-              Days Survived
-              <MetricTooltip
-                title="Days Survived"
-                why="So that you can track overall progression and compare survival milestones across different playthroughs"
-                how="Extracted from game root element attribute"
-                what="Use this to gauge how established your colony is - longer survival means more research, resources, and infrastructure"
-              />
+          <DebugInfo
+            fieldId="game.daysSurvived"
+            fieldLabel="Days Survived"
+            dataSource="gameSession.daysSurvived (from XML root element attribute)"
+            currentValue={gameSession.daysSurvived || 'N/A'}
+            notes="This is the total days the player has survived in this game session"
+            debugMode={debugMode}
+          >
+            <div className="stat-box">
+              <div className="stat-label">
+                Days Survived
+                <MetricTooltip
+                  title="Days Survived"
+                  why="So that you can track overall progression and compare survival milestones across different playthroughs"
+                  how="Extracted from game root element attribute"
+                  what="Use this to gauge how established your colony is - longer survival means more research, resources, and infrastructure"
+                />
+              </div>
+              <div className="stat-value">{gameSession.daysSurvived || 'N/A'}</div>
             </div>
-            <div className="stat-value">{gameSession.daysSurvived || 'N/A'}</div>
-          </div>
+          </DebugInfo>
 
           <div className="stat-box">
             <div className="stat-label">
@@ -342,53 +558,80 @@ export default function DevDashboard() {
             </div>
           </div>
 
-          <div className="stat-box">
-            <div className="stat-label">
-              Star Systems
-              <MetricTooltip
-                title="Star Systems (Visited / Unexplored)"
-                why="So that you understand how much of the map is covered and can plan your next hyperjump"
-                how="Visited count from systems where visited=true, unexplored count from systems where visited=false"
-                what="Plan your next hyperjump or perform resource gathering in new unexplored systems"
-              />
+          <DebugInfo
+            fieldId="game.starSystems"
+            fieldLabel="Star Systems (Visited / Unexplored)"
+            dataSource="gameSession.starSystems.filter(s => s.visited).length and .filter(s => !s.visited).length"
+            currentValue={`${visitedSystemsCount} (${unexploredSystemsCount})`}
+            notes="Visited count shows systems with visited=true, unexplored shows visited=false"
+            debugMode={debugMode}
+          >
+            <div className="stat-box">
+              <div className="stat-label">
+                Star Systems
+                <MetricTooltip
+                  title="Star Systems (Visited / Unexplored)"
+                  why="So that you understand how much of the map is covered and can plan your next hyperjump"
+                  how="Visited count from systems where visited=true, unexplored count from systems where visited=false"
+                  what="Plan your next hyperjump or perform resource gathering in new unexplored systems"
+                />
+              </div>
+              <div className="stat-value">
+                <span style={{ color: 'var(--accent-green)' }}>{visitedSystemsCount}</span>
+                <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({unexploredSystemsCount})</span>
+              </div>
             </div>
-            <div className="stat-value">
-              <span style={{ color: 'var(--accent-green)' }}>{visitedSystemsCount}</span>
-              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({unexploredSystemsCount})</span>
-            </div>
-          </div>
+          </DebugInfo>
 
-          <div className="stat-box">
-            <div className="stat-label">
-              Ships
-              <MetricTooltip
-                title="Ships (Player / Other)"
-                why="So that you can manage your fleet and identify trading or combat opportunities with other vessels"
-                how="Player ships from <settings owner='Player'>, other ships from <settings owner!='Player'> (e.g., Civilian, Enemy)"
-                what="Focus on your player ships for crew and resource management, or locate trade stations and allied vessels"
-              />
+          <DebugInfo
+            fieldId="game.ships"
+            fieldLabel="Ships (Player / Other)"
+            dataSource="gameSession.ships.filter(s => s.isPlayerOwned).length and .filter(s => !s.isPlayerOwned).length"
+            currentValue={`${playerShipsCount} (${otherShipsCount})`}
+            notes="Player ships determined by <settings owner='Player'>, Others include Civilian, Enemy, etc."
+            debugMode={debugMode}
+          >
+            <div className="stat-box">
+              <div className="stat-label">
+                Ships
+                <MetricTooltip
+                  title="Ships (Player / Other)"
+                  why="So that you can manage your fleet and identify trading or combat opportunities with other vessels"
+                  how="Player ships from <settings owner='Player'>, other ships from <settings owner!='Player'> (e.g., Civilian, Enemy)"
+                  what="Focus on your player ships for crew and resource management, or locate trade stations and allied vessels"
+                />
+              </div>
+              <div className="stat-value">
+                <span style={{ color: 'var(--accent-green)' }}>{playerShipsCount}</span>
+                <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({otherShipsCount})</span>
+              </div>
             </div>
-            <div className="stat-value">
-              <span style={{ color: 'var(--accent-green)' }}>{playerShipsCount}</span>
-              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({otherShipsCount})</span>
-            </div>
-          </div>
+          </DebugInfo>
 
-          <div className="stat-box">
-            <div className="stat-label">
-              Crew Members
-              <MetricTooltip
-                title="Crew Members (Player / Other)"
-                why="So that you can monitor your colonist population and identify NPC traders or potential crew recruitment opportunities"
-                how="Player crew from <characters> in player-owned ships, other crew from <characters> in non-player ships"
-                what="Manage your colonists' health, mood, and skills, or identify traders and station operators for commerce"
-              />
+          <DebugInfo
+            fieldId="game.crewMembers"
+            fieldLabel="Crew Members (Player / Other)"
+            dataSource="Sum of ship.crew.length for player ships vs non-player ships"
+            currentValue={`${totalCrewCount} (${otherCrewCount})`}
+            notes="Crew extracted from <characters><c entId='...'> tags within each ship. Uses entId (not cid) for unique identification."
+            debugMode={debugMode}
+          >
+            <div className="stat-box">
+              <div className="stat-label">
+                Crew Members
+                <MetricTooltip
+                  title="Crew Members (Player / Other)"
+                  why="So that you can monitor your colonist population and identify NPC traders or potential crew recruitment opportunities"
+                  how="Player crew from <characters> in player-owned ships, other crew from <characters> in non-player ships"
+                  what="Manage your colonists' health, mood, and skills, or identify traders and station operators for commerce"
+                />
+              </div>
+              <div className="stat-value">
+                <span style={{ color: 'var(--accent-green)' }}>{totalCrewCount}</span>
+                <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({otherCrewCount})</span>
+              </div>
             </div>
-            <div className="stat-value">
-              <span style={{ color: 'var(--accent-green)' }}>{totalCrewCount}</span>
-              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({otherCrewCount})</span>
-            </div>
-          </div>
+          </DebugInfo>
         </div>
       </TerminalPanel>
 
@@ -832,26 +1075,27 @@ export default function DevDashboard() {
         )}
       </TerminalPanel>
 
-      {/* Dev Data Inspector */}
-      <div style={{ 
-        marginTop: 'var(--space-xl)', 
-        padding: 'var(--space-md)', 
-        border: '2px dashed var(--accent-yellow)', 
-        borderRadius: 'var(--radius-md)',
-        background: 'rgba(255, 165, 0, 0.05)'
-      }}>
-        <details open>
-          <summary style={{ 
-            cursor: 'pointer', 
-            color: 'var(--accent-yellow)', 
-            fontSize: '1rem',
-            fontWeight: 600,
-            padding: 'var(--space-sm)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <span>🔍 DEV: Collapsible JSON Inspector</span>
+      {/* Dev Data Inspector - Only visible in Debug Mode */}
+      {debugMode && (
+        <div style={{ 
+          marginTop: 'var(--space-xl)', 
+          padding: 'var(--space-md)', 
+          border: '2px dashed var(--accent-yellow)', 
+          borderRadius: 'var(--radius-md)',
+          background: 'rgba(255, 165, 0, 0.05)'
+        }}>
+          <details open>
+            <summary style={{ 
+              cursor: 'pointer', 
+              color: 'var(--accent-yellow)', 
+              fontSize: '1rem',
+              fontWeight: 600,
+              padding: 'var(--space-sm)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span>🐛 DEBUG: JSON Data Explorer (XML → JSON → Site)</span>
             <button
               onClick={(e) => {
                 e.preventDefault()
@@ -891,6 +1135,7 @@ export default function DevDashboard() {
           </div>
         </details>
       </div>
+      )}
     </div>
   )
 }
