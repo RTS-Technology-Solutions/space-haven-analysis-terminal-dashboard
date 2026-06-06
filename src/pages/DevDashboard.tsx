@@ -16,6 +16,7 @@ export default function DevDashboard() {
   const [gameSession, setGameSession] = useState<GameSession | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [targetPath, setTargetPath] = useState<string>('game_20260605_1841.xml')
 
   // Selection state for each hierarchy level
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null)
@@ -30,6 +31,7 @@ export default function DevDashboard() {
 
     setLoading(true)
     setError(null)
+    setTargetPath(file.name)
 
     try {
       console.log('🔧 Starting parse of', file.name)
@@ -73,6 +75,61 @@ export default function DevDashboard() {
     }
   }
 
+  // Load example file handler
+  const handleLoadExample = async () => {
+    setLoading(true)
+    setError(null)
+    const exampleFileName = 'game_20260605_1841.xml'
+    setTargetPath(exampleFileName)
+
+    try {
+      console.log('🔧 Loading example file:', exampleFileName)
+      // Fetch from public folder
+      const response = await fetch(`/data/${exampleFileName}`)
+      if (!response.ok) {
+        throw new Error(`Failed to load example file: ${response.statusText}`)
+      }
+      
+      const text = await response.text()
+      console.log('📄 File size:', text.length, 'bytes')
+      
+      // Create parser with id_mappings.xml loaded
+      const parser = await createParserWithMappings()
+      const session = await parser.parseGameSave(text, exampleFileName)
+      
+      // Sort star systems alphabetically
+      session.starSystems.sort((a, b) => {
+        const nameA = a.systemName || ''
+        const nameB = b.systemName || ''
+        return nameA.localeCompare(nameB)
+      })
+      
+      console.log('✅ Parsed game session:', session)
+      console.log('📊 Ships:', session.ships.length)
+      console.log('👥 Total Crew:', session.ships.reduce((sum, s) => sum + s.crew.length, 0))
+      console.log('⭐ Systems:', session.starSystems.length)
+      
+      setGameSession(session)
+      
+      // Auto-select first system if available
+      if (session.starSystems.length > 0) {
+        setSelectedSystemId(session.starSystems[0].systemId)
+      }
+      
+      // Auto-select first player ship if available
+      const playerShip = session.ships.find(s => s.isPlayerOwned)
+      if (playerShip) {
+        setSelectedShipId(playerShip.shipId)
+        console.log('🎮 Auto-selected player ship:', playerShip.shipName)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load example file')
+      console.error('❌ Load error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleReset = () => {
     setGameSession(null)
     setSelectedSystemId(null)
@@ -80,6 +137,7 @@ export default function DevDashboard() {
     setSelectedShipId(null)
     setSelectedCrewId(null)
     setError(null)
+    setTargetPath('game_20260605_1841.xml')
   }
 
   // Get selected entities
@@ -129,16 +187,26 @@ export default function DevDashboard() {
           </p>
 
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <label htmlFor="save-file-input" className="btn-terminal btn-terminal-lg" style={{ cursor: 'pointer' }}>
-              📁 SELECT SAVE FILE (.xml)
-              <input
-                id="save-file-input"
-                type="file"
-                accept=".xml"
-                onChange={handleFileUpload}
-                style={{ display: 'none' }}
-              />
-            </label>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <label htmlFor="save-file-input" className="btn-terminal btn-terminal-lg" style={{ cursor: 'pointer' }}>
+                📁 SELECT GAME SAVE
+                <input
+                  id="save-file-input"
+                  type="file"
+                  accept=".xml"
+                  onChange={handleFileUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              
+              <button 
+                className="btn-terminal btn-terminal-lg"
+                onClick={handleLoadExample}
+                disabled={loading}
+              >
+                🎯 LOAD EXAMPLE
+              </button>
+            </div>
 
             {loading && (
               <div style={{ marginTop: '1.5rem' }}>
@@ -176,8 +244,9 @@ export default function DevDashboard() {
             <h4 style={{ color: 'var(--accent-cyan)', marginTop: 0 }}>💡 Dev Notes:</h4>
             <ul style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
               <li>Open browser console (F12) to see detailed parsing output</li>
-              <li>Test files located in: <code>data/game_saves/</code></li>
-              <li>Latest test file: <code>game_20260601_2202.xml</code></li>
+              <li>Test files located in: <code>data/game_saves/</code> or upload your own</li>
+              <li>Current target file: <code style={{ color: 'var(--accent-yellow)' }}>{targetPath}</code></li>
+              <li>Click "LOAD EXAMPLE" to test with: <code>game_20260605_1841.xml</code></li>
               <li>Compare parsed data structure vs mock data structure</li>
               <li>Document confirmed XML paths in observations.md</li>
             </ul>
@@ -207,9 +276,12 @@ export default function DevDashboard() {
           </h3>
           <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
             Loaded: {gameSession.timestamp.toLocaleString()} | 
-            Ships: <span style={{ color: 'var(--accent-green)' }}>{playerShipsCount} Player</span> + {otherShipsCount} Other | 
-            Crew: <span style={{ color: 'var(--accent-green)' }}>{totalCrewCount} Player</span> + {otherCrewCount} Other | 
-            Systems: <span style={{ color: 'var(--accent-green)' }}>{visitedSystemsCount} Visited</span> + {unexploredSystemsCount} Unexplored
+            Ships: <span style={{ color: 'var(--accent-green)' }}>{playerShipsCount}</span>
+            <span style={{ opacity: 0.6 }}> ({gameSession.ships.length})</span> | 
+            Crew: <span style={{ color: 'var(--accent-green)' }}>{totalCrewCount}</span>
+            <span style={{ opacity: 0.6 }}> ({totalCrewCount + otherCrewCount})</span> | 
+            Systems: <span style={{ color: 'var(--accent-green)' }}>{visitedSystemsCount}</span>
+            <span style={{ opacity: 0.6 }}> ({gameSession.starSystems.length})</span>
           </p>
         </div>
         <button onClick={handleReset} className="btn-terminal" style={{
@@ -234,9 +306,9 @@ export default function DevDashboard() {
               Save File Name
               <MetricTooltip
                 title="Save File Name"
-                why="Identifies which save file you're viewing"
+                why="So that you can distinguish between multiple save files from different game sessions"
                 how="Extracted from the uploaded XML filename"
-                what="Use this to distinguish between multiple save files from different game sessions"
+                what="Use this to verify you're viewing the correct game save when comparing sessions"
               />
             </div>
             <div className="stat-value" style={{ fontSize: '1rem' }}>{gameSession.saveFileName}</div>
@@ -247,9 +319,9 @@ export default function DevDashboard() {
               Days Survived
               <MetricTooltip
                 title="Days Survived"
-                why="Primary measure of game progression"
-                how="Extracted from game root element"
-                what="Longer survival = more time to build, research, and explore"
+                why="So that you can track overall progression and compare survival milestones across different playthroughs"
+                how="Extracted from game root element attribute"
+                what="Use this to gauge how established your colony is - longer survival means more research, resources, and infrastructure"
               />
             </div>
             <div className="stat-value">{gameSession.daysSurvived || 'N/A'}</div>
@@ -260,9 +332,9 @@ export default function DevDashboard() {
               Game Timestamp
               <MetricTooltip
                 title="Save Timestamp"
-                why="Shows when this save was created"
-                how="Extracted from filename pattern or file modification time"
-                what="Helps track your gameplay sessions chronologically"
+                why="So that you can track your gameplay sessions chronologically and identify your most recent progress"
+                how="Extracted from filename pattern or file metadata"
+                what="Use this to find your latest save when you have multiple game sessions"
               />
             </div>
             <div className="stat-value" style={{ fontSize: '0.9rem' }}>
@@ -272,80 +344,50 @@ export default function DevDashboard() {
 
           <div className="stat-box">
             <div className="stat-label">
-              Visited Systems
+              Star Systems
               <MetricTooltip
-                title="Visited Systems"
-                why="Star systems you've actually explored"
-                how="Filtered from save file where visited=true"
-                what="These systems have bodies you've visited and contain discoverable resources"
+                title="Star Systems (Visited / Total)"
+                why="So that you understand how much of the map is covered and can plan your next hyperjump"
+                how="Visited count from systems where visited=true, total from all discovered systems in save file"
+                what="Plan your next hyperjump or perform resource gathering in new unexplored systems"
               />
             </div>
-            <div className="stat-value" style={{ color: 'var(--accent-green)' }}>{visitedSystemsCount}</div>
+            <div className="stat-value">
+              <span style={{ color: 'var(--accent-green)' }}>{visitedSystemsCount}</span>
+              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({gameSession.starSystems.length})</span>
+            </div>
           </div>
 
           <div className="stat-box">
             <div className="stat-label">
-              Unexplored Systems
+              Ships
               <MetricTooltip
-                title="Unexplored Systems"
-                why="Systems generated but not yet visited"
-                how="Filtered from save file where visited=false"
-                what="These systems won't have detailed data until you explore them"
+                title="Ships (Player / Total)"
+                why="So that you can manage your fleet and identify trading or combat opportunities with other vessels"
+                how="Player ships from <settings owner='Player'>, total from all <ship> elements with ownerId (faction ID) in save file"
+                what="Focus on your player ships for crew and resource management, or locate trade stations and allied vessels"
               />
             </div>
-            <div className="stat-value" style={{ color: 'var(--text-tertiary)', opacity: 0.6 }}>{unexploredSystemsCount}</div>
+            <div className="stat-value">
+              <span style={{ color: 'var(--accent-green)' }}>{playerShipsCount}</span>
+              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({gameSession.ships.length})</span>
+            </div>
           </div>
 
           <div className="stat-box">
             <div className="stat-label">
-              Player Ships
+              Crew Members
               <MetricTooltip
-                title="Player Ships"
-                why="Ships you directly control"
-                how="Filtered from ships where owner='Player'"
-                what="Your fleet - primary focus for resource and crew management"
+                title="Crew Members (Player / Total)"
+                why="So that you can monitor your colonist population and identify NPC traders or potential crew recruitment opportunities"
+                how="Player crew from <characters> in player ships, total from all <c> (character) elements across all ships"
+                what="Manage your colonists' health, mood, and skills, or identify traders and station operators for commerce"
               />
             </div>
-            <div className="stat-value" style={{ color: 'var(--accent-green)' }}>{playerShipsCount}</div>
-          </div>
-
-          <div className="stat-box">
-            <div className="stat-label">
-              Other Ships
-              <MetricTooltip
-                title="Other Ships"
-                why="NPC ships, stations, and civilian vessels"
-                how="Filtered from ships where owner!='Player' (e.g., owner='Civilian')"
-                what="Trade stations, enemy ships, or allied vessels - not under your direct control"
-              />
+            <div className="stat-value">
+              <span style={{ color: 'var(--accent-green)' }}>{totalCrewCount}</span>
+              <span style={{ color: 'var(--text-tertiary)', opacity: 0.6, marginLeft: '0.25rem' }}>({totalCrewCount + otherCrewCount})</span>
             </div>
-            <div className="stat-value" style={{ color: 'var(--text-tertiary)', opacity: 0.6 }}>{otherShipsCount}</div>
-          </div>
-
-          <div className="stat-box">
-            <div className="stat-label">
-              Player Crew
-              <MetricTooltip
-                title="Player Crew"
-                why="Your crew members across all player ships"
-                how="Counted from characters in ships where owner='Player'"
-                what="Your colonists - primary focus for health, mood, and skill management"
-              />
-            </div>
-            <div className="stat-value" style={{ color: 'var(--accent-green)' }}>{totalCrewCount}</div>
-          </div>
-
-          <div className="stat-box">
-            <div className="stat-label">
-              Other Crew
-              <MetricTooltip
-                title="Other Crew"
-                why="NPC crew on stations and civilian ships"
-                how="Counted from characters in ships where owner!='Player'"
-                what="Traders, station operators, or enemy crew - not under your command"
-              />
-            </div>
-            <div className="stat-value" style={{ color: 'var(--text-tertiary)', opacity: 0.6 }}>{otherCrewCount}</div>
           </div>
         </div>
       </TerminalPanel>
@@ -497,9 +539,9 @@ export default function DevDashboard() {
                   Hull Integrity (Avg)
                   <MetricTooltip
                     title="Hull Integrity"
-                    why="Monitor structural damage to your ship"
-                    how="Average hull health across all elements"
-                    what="Based on raw 'ht' values from save file"
+                    why="So that you can monitor structural damage and prioritize repairs before catastrophic hull breaches occur"
+                    how="Average hull health calculated from 'ht' (hull thickness/integrity) values across all ship elements"
+                    what="Repair damaged sections or reinforce weak points in your ship's structure"
                   />
                 </div>
                 <div className="stat-value" style={{
@@ -514,9 +556,9 @@ export default function DevDashboard() {
                   Power Efficiency
                   <MetricTooltip
                     title="Power Efficiency"
-                    why="Ensure all systems have adequate power"
-                    how="Percentage of power demand being met by generators"
-                    what="<100% means some systems are offline due to power shortage"
+                    why="So that you can ensure all critical systems have adequate power and identify energy shortages"
+                    how="Percentage of power demand being met by active generators across the ship"
+                    what="Build more generators or disable non-essential systems if efficiency is below 100%"
                   />
                 </div>
                 <div className="stat-value" style={{
