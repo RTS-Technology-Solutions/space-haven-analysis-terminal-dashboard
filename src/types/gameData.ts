@@ -13,10 +13,7 @@ export interface GameSession {
   gameMode: string
   daysSurvived: number
   
-  // Player identification
-  playerFactionId: string  // The player's faction ID for filtering owned entities
-  
-  // Child collections (ownership relationships)
+  // Child collections (hierarchical relationships)
   ships: Ship[]
   starSystems: StarSystem[]
   factionRelations: FactionRelation[]
@@ -33,6 +30,7 @@ export interface Ship {
   shipType: 'ship' | 'station'
   positionX: number
   positionY: number
+  systemId?: string  // Star system this ship is located in
   ownerId?: string  // Faction ID of the ship owner
   isPlayerOwned?: boolean  // Convenience flag
   
@@ -53,11 +51,9 @@ export interface Element {
   moduleType: number  // ID from id_mappings.xml
   moduleName: string  // Human-readable name
   
-  // Component state
-  hullHealth: number
-  shieldStrength: number
-  maxHealth: number
-  status: 'Operational' | 'Damaged' | 'Critical' | 'Destroyed'
+  // Component state (raw from XML)
+  hullHealth?: number  // 'ht' attribute - may not be present
+  shieldStrength?: number  // 'sh' attribute - may not be present
   
   // Inventory (if element has storage)
   inventory: InventoryItem[]
@@ -244,7 +240,6 @@ export interface ShipMetrics {
   
   // System Status
   powerEfficiency: number  // % of power demand being met
-  lifeSupportStatus: 'Good' | 'Warning' | 'Critical'
   shieldCoverage: number  // % of ship with shields
   
   // Storage
