@@ -32,7 +32,9 @@ export async function getParserConfig(): Promise<ParserConfig> {
     skillMappings: toNumericMappings(mappings.skills),
     itemMappings: toStringMappings(mappings.items),
     traitMappings: toStringMappings(mappings.traits),
-    occupationMappings: toStringMappings(mappings.occupations)
+    occupationMappings: toStringMappings(mappings.occupations),
+    elementMaxValues: {},
+    crewVitalMaxValues: {}
   }
 }
 

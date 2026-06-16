@@ -10,16 +10,15 @@ import './BetaDashboard.css' // Reuse beta styles
 import '../components/DebugInfo.css' // Debug mode styles
 
 /**
- * Dev Dashboard - Real Data Testing Version of Beta Wireframe
- * Purpose: Test real XML parsing with the hierarchical navigation UI
- * Connects actual game save data to the beta visual structure
+ * Dashboard - Official Game Analytics Dashboard
+ * Purpose: Main dashboard for Space Haven game save analysis
+ * Connects real XML parsing to hierarchical navigation UI
  */
-export default function DevDashboard() {
+export default function Dashboard() {
   // Parsing state
   const [gameSession, setGameSession] = useState<GameSession | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [targetPath, setTargetPath] = useState<string>('game_20260605_1841.xml')
 
   // Original XML storage for snapshot capture
   const [originalXmlText, setOriginalXmlText] = useState<string | null>(null)
@@ -55,7 +54,6 @@ export default function DevDashboard() {
 
     setLoading(true)
     setError(null)
-    setTargetPath(file.name)
 
     try {
       console.log('🔧 Starting parse of', file.name)
@@ -84,9 +82,6 @@ export default function DevDashboard() {
       
       setGameSession(session)
       
-      // Don't auto-select system - let user follow guided flow
-      // User should select system → ship → crew in order
-      
       console.log('🎮 Game session loaded - ready for guided navigation')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse save file')
@@ -101,11 +96,9 @@ export default function DevDashboard() {
     setLoading(true)
     setError(null)
     const exampleFileName = 'game_20260605_1841.xml'
-    setTargetPath(exampleFileName)
 
     try {
       console.log('🔧 Loading example file:', exampleFileName)
-      // Fetch from public folder
       const response = await fetch(`/data/${exampleFileName}`)
       if (!response.ok) {
         throw new Error(`Failed to load example file: ${response.statusText}`)
@@ -136,9 +129,6 @@ export default function DevDashboard() {
       
       setGameSession(session)
       
-      // Don't auto-select system - let user follow guided flow
-      // User should select system → ship → crew in order
-      
       console.log('🎮 Game session loaded - ready for guided navigation')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load example file')
@@ -154,7 +144,6 @@ export default function DevDashboard() {
     setSelectedShipId(null)
     setSelectedCrewId(null)
     setError(null)
-    setTargetPath('game_20260605_1841.xml')
     setOriginalXmlText(null)
     setOriginalFileName(null)
   }
@@ -296,7 +285,7 @@ export default function DevDashboard() {
   }
 
   // Get selected entities
-  const selectedSystem = gameSession?.starSystems.find(s => s.systemId == selectedSystemId)  // Use == for type coercion
+  const selectedSystem = gameSession?.starSystems.find(s => s.systemId == selectedSystemId)
   const selectedShip = gameSession?.ships.find(s => s.shipId === selectedShipId)
   const selectedCrewMember = selectedShip?.crew.find(c => c.crewId === selectedCrewId)
 
@@ -309,7 +298,7 @@ export default function DevDashboard() {
   
   // Calculate ship counts per system for dropdown display
   const getShipCountForSystem = (systemId: string | number) => {
-    return gameSession?.ships.filter(s => s.systemId == systemId).length || 0  // Use == for type coercion
+    return gameSession?.ships.filter(s => s.systemId == systemId).length || 0
   }
   const totalCrewCount = gameSession?.ships
     .filter(s => s.isPlayerOwned)
@@ -319,35 +308,29 @@ export default function DevDashboard() {
     .reduce((sum, s) => sum + s.crew.length, 0) || 0
   const visitedSystemsCount = gameSession?.starSystems.filter(s => s.visited).length || 0
   const unexploredSystemsCount = gameSession?.starSystems.filter(s => !s.visited).length || 0
-  // Calculate crew averages as percentages (base max = 100 for display)
-  const averageCrewHealth = selectedShip && selectedShip.crew.length > 0 ? 
-    selectedShip.crew.reduce((sum, c) => sum + Math.min(100, (c.health / 100) * 100), 0) / selectedShip.crew.length : 0
-  const averageCrewMood = selectedShip && selectedShip.crew.length > 0 ?
-    selectedShip.crew.reduce((sum, c) => sum + Math.min(100, (c.mood / 100) * 100), 0) / selectedShip.crew.length : 0
-
+  
   // If no game session loaded, show upload screen
   if (!gameSession) {
     return (
       <div className="dashboard-page">
-        {/* Dev Warning Banner */}
         <div className="beta-warning-banner" style={{ 
-          background: 'rgba(255, 165, 0, 0.1)',
-          borderColor: 'var(--accent-yellow)'
+          background: 'rgba(0, 255, 255, 0.1)',
+          borderColor: 'var(--accent-cyan)'
         }}>
-          <div className="beta-warning-icon">🔧</div>
+          <div className="beta-warning-icon">📊</div>
           <div className="beta-warning-content">
-            <h3 className="beta-warning-title">🔧 DEV DASHBOARD - Real Data Testing</h3>
+            <h3 className="beta-warning-title">📊 SPACE HAVEN ANALYSIS DASHBOARD</h3>
             <p className="beta-warning-text">
-              This is the <strong>development testing environment</strong> for real game save data. 
-              Uses the same hierarchical UI as /beta-dash but connects to actual XML parsing. 
-              <strong>Hidden in production.</strong> Open browser console (F12) to see parsing details.
+              Upload your Space Haven save file to analyze your game session. 
+              View your ships, crew, systems, and resources in real-time. 
+              Export data snapshots for research and community sharing.
             </p>
           </div>
         </div>
 
-        <TerminalPanel title="🔧 DEV: UPLOAD GAME SAVE FILE" glow>
+        <TerminalPanel title="📊 UPLOAD GAME SAVE FILE" glow>
           <p style={{ marginBottom: 'var(--space-lg)', fontSize: 'var(--font-lg)' }}>
-            Upload a Space Haven save file to test real data parsing<span className="cursor-blink"></span>
+            Upload a Space Haven save file to analyze your game progress<span className="cursor-blink"></span>
           </p>
 
           <div style={{ textAlign: 'center', padding: '2rem' }}>
@@ -396,24 +379,6 @@ export default function DevDashboard() {
               </div>
             )}
           </div>
-
-          <div style={{ 
-            marginTop: '2rem', 
-            padding: 'var(--space-md)', 
-            background: 'rgba(0, 255, 255, 0.05)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid rgba(0, 255, 255, 0.2)'
-          }}>
-            <h4 style={{ color: 'var(--accent-cyan)', marginTop: 0 }}>💡 Dev Notes:</h4>
-            <ul style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
-              <li>Open browser console (F12) to see detailed parsing output</li>
-              <li>Test files located in: <code>data/game_saves/</code> or upload your own</li>
-              <li>Current target file: <code style={{ color: 'var(--accent-yellow)' }}>{targetPath}</code></li>
-              <li>Click "LOAD EXAMPLE" to test with: <code>game_20260605_1841.xml</code></li>
-              <li>Compare parsed data structure vs mock data structure</li>
-              <li>Document confirmed XML paths in observations.md</li>
-            </ul>
-          </div>
         </TerminalPanel>
       </div>
     )
@@ -422,10 +387,9 @@ export default function DevDashboard() {
   // Game session loaded - show hierarchical dashboard
   return (
     <div className="dashboard-page">
-      {/* Dev Control Bar */}
       <div style={{
-        background: 'rgba(255, 165, 0, 0.1)',
-        border: '2px solid var(--accent-yellow)',
+        background: 'rgba(0, 255, 255, 0.1)',
+        border: '2px solid var(--accent-cyan)',
         borderRadius: 'var(--radius-md)',
         padding: 'var(--space-md)',
         marginBottom: 'var(--space-lg)',
@@ -434,8 +398,8 @@ export default function DevDashboard() {
         alignItems: 'center'
       }}>
         <div>
-          <h3 style={{ margin: 0, color: 'var(--accent-yellow)', fontSize: '1rem' }}>
-            🔧 DEV MODE - {gameSession.saveFileName}
+          <h3 style={{ margin: 0, color: 'var(--accent-cyan)', fontSize: '1rem' }}>
+            📊 {gameSession.saveFileName}
           </h3>
           <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
             Loaded: {gameSession.timestamp.toLocaleString()} | 
@@ -454,9 +418,9 @@ export default function DevDashboard() {
             style={{
               background: debugMode 
                 ? 'linear-gradient(135deg, var(--accent-red) 0%, var(--accent-yellow) 100%)' 
-                : 'rgba(255, 165, 0, 0.2)',
-              borderColor: debugMode ? 'var(--accent-red)' : 'var(--accent-yellow)',
-              color: debugMode ? '#000' : 'var(--accent-yellow)',
+                : 'rgba(0, 255, 255, 0.2)',
+              borderColor: debugMode ? 'var(--accent-red)' : 'var(--accent-cyan)',
+              color: debugMode ? '#000' : 'var(--accent-cyan)',
               fontWeight: 'bold'
             }}
           >
@@ -484,25 +448,18 @@ export default function DevDashboard() {
         </div>
       </div>
 
-      {/* Data Sharing Consent Dialog */}
       <DataSharingConsent
         isOpen={showConsentDialog}
         onAccept={handleConsentAccept}
         onDecline={handleConsentDecline}
       />
 
-      {/* ================================================================ */}
-      {/* LEVEL 1: GAME DATA (Always visible, no selector)                */}
-      {/* ✅ VERIFIED: Save File Name, Days Survived, Game Timestamp,      */}
-      {/*              Star Systems, Ships, Crew Members                   */}
-      {/* ================================================================ */}
       <TerminalPanel title="🎮 LEVEL 1: GAME DATA" glow>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
           Root level - Save file metadata and overall game progress
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
-          {/* ✅ VERIFIED */}
           <div className="stat-box">
             <div className="stat-label">
               Save File Name
@@ -516,7 +473,6 @@ export default function DevDashboard() {
             <div className="stat-value" style={{ fontSize: '1rem' }}>{gameSession.saveFileName}</div>
           </div>
 
-          {/* ✅ VERIFIED */}
           <DebugInfo
             fieldId="game.daysSurvived"
             fieldLabel="Days Survived"
@@ -539,7 +495,6 @@ export default function DevDashboard() {
             </div>
           </DebugInfo>
 
-          {/* ✅ VERIFIED */}
           <div className="stat-box">
             <div className="stat-label">
               Game Timestamp
@@ -555,7 +510,6 @@ export default function DevDashboard() {
             </div>
           </div>
 
-          {/* ✅ VERIFIED */}
           <DebugInfo
             fieldId="game.starSystems"
             fieldLabel="Star Systems (Visited / Unexplored)"
@@ -633,9 +587,6 @@ export default function DevDashboard() {
         </div>
       </TerminalPanel>
 
-      {/* ================================================================ */}
-      {/* LEVEL 2: STAR SYSTEM (Selector if multiple systems)             */}
-      {/* ================================================================ */}
       {gameSession.starSystems.length > 0 && (
         <TerminalPanel title="⭐ LEVEL 2: STAR SYSTEM DATA">
           <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
@@ -662,7 +613,7 @@ export default function DevDashboard() {
                 .filter(system => system.systemName && system.systemName.trim() !== '')
                 .map(system => {
                   const shipCount = getShipCountForSystem(system.systemId)
-                  const isPlayerHere = system.systemId == playerCurrentSystemId  // Use == for type coercion
+                  const isPlayerHere = system.systemId == playerCurrentSystemId
                   return (
                     <option key={system.systemId} value={system.systemId}>
                       {isPlayerHere ? '👤 ' : ''}{system.systemName || `System ${system.systemId}`} ({shipCount} {shipCount === 1 ? 'ship' : 'ships'})
@@ -674,35 +625,30 @@ export default function DevDashboard() {
 
           {selectedSystem && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
-              {/* ✅ VERIFIED */}
               <div className="stat-box">
                 <div className="stat-label">System Name</div>
                 <div className="stat-value" style={{ fontSize: '1.2rem' }}>
                   {selectedSystem.systemName || `System ${selectedSystem.systemId}`}
                 </div>
               </div>
-              {/* ⚠️ NOT VERIFIED */}
               <div className="stat-box">
                 <div className="stat-label">System Type</div>
                 <div className="stat-value" style={{ fontSize: '1rem' }}>
                   {selectedSystem.systemType || 'Unknown'}
                 </div>
               </div>
-              {/* ✅ VERIFIED */}
               <div className="stat-box">
                 <div className="stat-label">Ships in System</div>
                 <div className="stat-value">
                   {getShipCountForSystem(selectedSystem.systemId)}
                 </div>
               </div>
-              {/* ✅ VERIFIED */}
               <div className="stat-box">
                 <div className="stat-label">System ID</div>
                 <div className="stat-value" style={{ fontSize: '1rem', fontFamily: 'var(--font-mono)' }}>
                   {selectedSystem.systemId}
                 </div>
               </div>
-              {/* ✅ VERIFIED */}
               <div className="stat-box">
                 <div className="stat-label">Visited</div>
                 <div className="stat-value" style={{ color: selectedSystem.visited ? 'var(--accent-green)' : 'var(--text-tertiary)' }}>
@@ -714,11 +660,6 @@ export default function DevDashboard() {
         </TerminalPanel>
       )}
 
-      {/* ================================================================ */}
-      {/* LEVEL 3: BODIES (Celestial bodies in selected system)           */}
-      {/* ✅ VERIFIED: Total Bodies, Stars, Planets, Asteroid Fields,     */}
-      {/*              Resources                                          */}
-      {/* ================================================================ */}
       {selectedSystemId && selectedSystem && (
         <TerminalPanel title="🌍 LEVEL 3: CELESTIAL BODIES">
           <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
@@ -727,7 +668,6 @@ export default function DevDashboard() {
 
           {selectedSystem.bodies && selectedSystem.bodies.length > 0 ? (
             <>
-              {/* ✅ ALL METRICS VERIFIED */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
                 <div className="stat-box">
                   <div className="stat-label">Total Bodies</div>
@@ -747,7 +687,6 @@ export default function DevDashboard() {
                 </div>
               </div>
 
-              {/* Bodies List */}
               <div style={{ display: 'grid', gap: 'var(--space-sm)' }}>
                 {selectedSystem.bodies.map((body) => (
                   <div key={body.bodyId} style={{
@@ -801,13 +740,6 @@ export default function DevDashboard() {
         </TerminalPanel>
       )}
 
-      {/* ================================================================ */}
-      {/* LEVEL 4: SHIP (Ship selector)                                   */}
-      {/* ✅ VERIFIED: Ship Name, Ship ID, Ownership, Faction/Owner ID,   */}
-      {/*              Hull Total Elements, Crew on Board, Hull Integrity */}
-      {/*              Power Efficiency, Avg Crew Health, Avg Crew Mood   */}
-      {/* ⚠️  NOT VERIFIED: Storage & Inventory (needs double-check)      */}
-      {/* ================================================================ */}
       <TerminalPanel title="🚀 LEVEL 4: SHIP DATA">
         <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
           Local object viewpoint - Select a star system first, then choose a ship to view its systems and crew. Number shows crew count.
@@ -832,7 +764,7 @@ export default function DevDashboard() {
                 : '-- Select Ship --'}
             </option>
             {selectedSystemId && gameSession.ships
-              .filter(ship => ship.systemId == selectedSystemId)  // Use == for type coercion
+              .filter(ship => ship.systemId == selectedSystemId)
               .map(ship => (
               <option key={ship.shipId} value={ship.shipId}>
                 {ship.shipName} ({ship.crew.length} {ship.crew.length === 1 ? 'crew' : 'crew'}) {ship.isPlayerOwned ? '👤' : '🤖'}
@@ -843,7 +775,6 @@ export default function DevDashboard() {
 
         {selectedShip && (
           <>
-            {/* Ship Overview Stats */}
             <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginTop: 'var(--space-lg)', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
               Ship Overview
             </h3>
@@ -875,7 +806,6 @@ export default function DevDashboard() {
               </div>
             </div>
 
-            {/* Hull & Systems */}
             <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
               🛠️ Hull & Systems
             </h3>
@@ -888,161 +818,14 @@ export default function DevDashboard() {
                 <div className="stat-label">Crew on Board</div>
                 <div className="stat-value">{selectedShip.crew.length}</div>
               </div>
-              {/* HIDDEN - MVP LAUNCH: Hull Integrity, Power Efficiency, Avg Health/Mood calculations depend on id_mappings max values. Re-enable after mapping fix. */}
-              {false && selectedShip && (
-                <>
-                  <div className="stat-box">
-                    <div className="stat-label">
-                      Hull Integrity (Avg)
-                      <MetricTooltip
-                        title="Hull Integrity"
-                        why="So that you can monitor structural damage and prioritize repairs before catastrophic hull breaches occur"
-                        how="Average hull health calculated from 'ht' (hull thickness/integrity) values across all ship elements"
-                        what="Repair damaged sections or reinforce weak points in your ship's structure"
-                      />
-                    </div>
-                    <div className="stat-value" style={{
-                      color: (selectedShip!.metrics?.hullIntegrity || 100) > 80 ? 'var(--accent-green)' :
-                             (selectedShip!.metrics?.hullIntegrity || 100) > 50 ? 'var(--accent-yellow)' : 'var(--accent-red)'
-                    }}>
-                      {selectedShip!.metrics?.hullIntegrity?.toFixed(1) || '100.0'}%
-                    </div>
-                  </div>
-                  <div className="stat-box">
-                    <div className="stat-label">
-                      Power Efficiency
-                      <MetricTooltip
-                        title="Power Efficiency"
-                        why="So that you can ensure all critical systems have adequate power and identify energy shortages"
-                        how="Percentage of power demand being met by active generators across the ship"
-                        what="Build more generators or disable non-essential systems if efficiency is below 100%"
-                      />
-                    </div>
-                    <div className="stat-value" style={{
-                      color: (selectedShip!.metrics?.powerEfficiency || 100) >= 100 ? 'var(--accent-green)' :
-                             (selectedShip!.metrics?.powerEfficiency || 100) > 80 ? 'var(--accent-yellow)' : 'var(--accent-red)'
-                    }}>
-                      {selectedShip!.metrics?.powerEfficiency?.toFixed(1) || '100.0'}%
-                    </div>
-                  </div>
-                  <div className="stat-box">
-                    <div className="stat-label">Avg Crew Health</div>
-                    <div className="stat-value" style={{
-                      color: averageCrewHealth > 80 ? 'var(--accent-green)' :
-                             averageCrewHealth > 50 ? 'var(--accent-yellow)' : 'var(--accent-red)'
-                    }}>
-                      {averageCrewHealth > 0 ? averageCrewHealth.toFixed(1) + '%' : 'N/A'}
-                    </div>
-                  </div>
-                  <div className="stat-box">
-                    <div className="stat-label">Avg Crew Mood</div>
-                    <div className="stat-value" style={{
-                      color: averageCrewMood > 70 ? 'var(--accent-green)' :
-                             averageCrewMood > 50 ? 'var(--accent-yellow)' : 'var(--accent-red)'
-                    }}>
-                      {averageCrewMood > 0 ? averageCrewMood.toFixed(1) + '%' : 'N/A'}
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
-
-            {/* HIDDEN - MVP LAUNCH: Storage & Inventory. All item names are numeric IDs due to async mapping bug. Re-enable after mapping fix. */}
-            {false && (() => {
-              // Aggregate all inventory items from all elements
-              const allInventory: Record<string, { name: string, quantity: number }> = {}
-              selectedShip!.elements.forEach(elem => {
-                elem.inventory.forEach(item => {
-                  if (!allInventory[item.itemId]) {
-                    allInventory[item.itemId] = { name: item.itemName, quantity: 0 }
-                  }
-                  allInventory[item.itemId].quantity += item.quantity
-                })
-              })
-              
-              const inventoryArray = Object.entries(allInventory).map(([id, data]) => ({
-                itemId: id,
-                itemName: data.name,
-                quantity: data.quantity
-              })).sort((a, b) => b.quantity - a.quantity)
-              
-              return (
-                <>
-                  <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
-                    📦 Storage & Inventory
-                  </h3>
-                  <div style={{ marginBottom: 'var(--space-xl)' }}>
-                    <div style={{ 
-                      padding: 'var(--space-sm)',
-                      background: 'var(--terminal-bg-dark)',
-                      borderRadius: 'var(--radius-sm)',
-                      marginBottom: 'var(--space-md)'
-                    }}>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        Total Items: <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>{inventoryArray.length}</span>
-                        {' | '}
-                        Storage Elements: <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>
-                          {selectedShip!.elements.filter(e => e.inventory && e.inventory.length > 0).length}
-                        </span>
-                      </span>
-                    </div>
-                    
-                    {inventoryArray.length > 0 ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--space-sm)' }}>
-                        {inventoryArray.map((item, idx) => (
-                          <div key={idx} style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: 'var(--space-sm)',
-                            background: 'rgba(0, 255, 255, 0.05)',
-                            border: '1px solid rgba(0, 255, 255, 0.2)',
-                            borderRadius: 'var(--radius-sm)'
-                          }}>
-                            <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                              {item.itemName}
-                            </span>
-                            <span style={{ 
-                              fontSize: '0.9rem', 
-                              fontWeight: 600,
-                              color: 'var(--accent-green)',
-                              padding: '0.2rem 0.5rem',
-                              background: 'rgba(0, 255, 136, 0.1)',
-                              borderRadius: 'var(--radius-sm)'
-                            }}>
-                              {item.quantity}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div style={{
-                        padding: 'var(--space-lg)',
-                        textAlign: 'center',
-                        color: 'var(--text-tertiary)',
-                        background: 'rgba(0, 255, 255, 0.05)',
-                        border: '1px solid rgba(0, 255, 255, 0.1)',
-                        borderRadius: 'var(--radius-md)'
-                      }}>
-                        No items in storage
-                      </div>
-                    )}
-                  </div>
-                </>
-              )
-            })()}
           </>
         )}
       </TerminalPanel>
 
-      {/* ================================================================ */}
-      {/* LEVEL 5: CREW (Always visible, guided by disabled dropdown)     */}
-      {/* ✅ VERIFIED: Name, ID, Health, Mood, Food, Energy, Comfort      */}
-      {/* ⚠️  NOT VERIFIED: Oxygen, Skills & Expertise                    */}
-      {/* ================================================================ */}
       <TerminalPanel title="👤 LEVEL 5: CREW DATA">
         <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)', fontSize: '0.9rem' }}>
-          Individual viewpoint - Select a ship first to view crew members. Choose a crew member to see their skills, health, and job assignments.
+          Individual viewpoint - Select a ship first to view crew members. Choose a crew member to see their health and mood.
         </p>
 
         <div className="selector-wrapper">
@@ -1076,115 +859,86 @@ export default function DevDashboard() {
 
         {selectedCrewMember && (
           <>
-            {/* Crew Overview */}
-              <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginTop: 'var(--space-lg)', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
-                Crew Profile
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
-                <div className="stat-box">
-                  <div className="stat-label">Name</div>
-                  <div className="stat-value" style={{ fontSize: '1.2rem' }}>
-                    {selectedCrewMember.name} {selectedCrewMember.lastName}
-                  </div>
-                </div>
-                <div className="stat-box">
-                  <div className="stat-label">Crew ID</div>
-                  <div className="stat-value" style={{ fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
-                    {selectedCrewMember.crewId}
-                  </div>
+            <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginTop: 'var(--space-lg)', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
+              Crew Profile
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
+              <div className="stat-box">
+                <div className="stat-label">Name</div>
+                <div className="stat-value" style={{ fontSize: '1.2rem' }}>
+                  {selectedCrewMember.name} {selectedCrewMember.lastName}
                 </div>
               </div>
+              <div className="stat-box">
+                <div className="stat-label">Crew ID</div>
+                <div className="stat-value" style={{ fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>
+                  {selectedCrewMember.crewId}
+                </div>
+              </div>
+            </div>
 
-              {/* Vital Stats */}
-              <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
-                💓 Vital Statistics
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
-                {[
-                  { label: 'Health', value: selectedCrewMember.health, rawValue: selectedCrewMember.health, baseMax: 100, icon: '❤️', isInverse: false },
-                  { label: 'Mood', value: selectedCrewMember.mood, rawValue: selectedCrewMember.mood, baseMax: 100, icon: '😊', isInverse: false }
-                  /* HIDDEN - MVP LAUNCH: Food, Energy, Comfort, Oxygen fields may not exist in crew data. Re-enable after validation. */
-                  /* { label: 'Food', value: selectedCrewMember.food, rawValue: selectedCrewMember.food, baseMax: 100, icon: '🍽️', isInverse: false }, */
-                  /* { label: 'Energy', value: selectedCrewMember.rest, rawValue: selectedCrewMember.rest, baseMax: 100, icon: '⚡', isInverse: false }, */
-                  /* { label: 'Comfort', value: selectedCrewMember.comfort || 0, rawValue: selectedCrewMember.comfort, baseMax: 100, icon: '🛏️', isInverse: false }, */
-                  /* { label: 'Oxygen', value: selectedCrewMember.oxygen, rawValue: selectedCrewMember.oxygen, baseMax: 1000, icon: '💨', isInverse: true } */
-                ].filter(v => v.value !== undefined).map((vital, idx) => (
-                  <div key={idx} style={{
-                    padding: 'var(--space-md)',
-                    background: 'rgba(0, 255, 255, 0.05)',
-                    border: '1px solid rgba(0, 255, 255, 0.2)',
-                    borderRadius: 'var(--radius-md)'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-sm)' }}>
-                      <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        {vital.icon} {vital.label}
-                      </span>
-                      <span style={{ 
-                        fontSize: '0.85rem', 
-                        fontWeight: 600,
-                        color: 'var(--text-primary)'
-                      }}>
-                        {/* Show raw value and percentage */}
-                        <span style={{ color: 'var(--accent-cyan)' }}>{vital.rawValue ?? 0}</span>
-                        <span style={{ color: 'var(--text-tertiary)', margin: '0 0.3rem' }}>/</span>
-                        <span style={{ color: 'var(--text-secondary)' }}>{vital.baseMax}</span>
-                        <span style={{ 
-                          marginLeft: '0.5rem',
-                          color: !vital.isInverse && (vital.rawValue ?? 0) > 80 ? 'var(--accent-green)' : 
-                                 !vital.isInverse && (vital.rawValue ?? 0) > 50 ? 'var(--accent-yellow)' : 
-                                 !vital.isInverse && (vital.rawValue ?? 0) > 30 ? 'var(--accent-orange)' : 
-                                 vital.isInverse && (vital.rawValue ?? 0) === 0 ? 'var(--accent-green)' : 'var(--accent-red)'
-                        }}>
-                          ({Math.min(100, ((vital.rawValue ?? 0) / vital.baseMax) * 100).toFixed(0)}%)
-                        </span>
-                      </span>
-                    </div>
-                    {/* Progress bar */}
-                    <div style={{ 
-                      width: '100%', 
-                      height: '12px', 
-                      background: 'var(--terminal-bg-dark)',
-                      borderRadius: 'var(--radius-sm)',
-                      overflow: 'hidden',
-                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)'
+            <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
+              💓 Vital Statistics
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
+              {[
+                { label: 'Health', value: selectedCrewMember.health, rawValue: selectedCrewMember.health, baseMax: 100, icon: '❤️' },
+                { label: 'Mood', value: selectedCrewMember.mood, rawValue: selectedCrewMember.mood, baseMax: 100, icon: '😊' }
+              ].filter(v => v.value !== undefined).map((vital, idx) => (
+                <div key={idx} style={{
+                  padding: 'var(--space-md)',
+                  background: 'rgba(0, 255, 255, 0.05)',
+                  border: '1px solid rgba(0, 255, 255, 0.2)',
+                  borderRadius: 'var(--radius-md)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-sm)' }}>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      {vital.icon} {vital.label}
+                    </span>
+                    <span style={{ 
+                      fontSize: '0.85rem', 
+                      fontWeight: 600,
+                      color: 'var(--text-primary)'
                     }}>
-                      <div style={{ 
-                        width: `${Math.min(100, ((vital.rawValue ?? 0) / vital.baseMax) * 100)}%`,
-                        height: '100%',
-                        background: !vital.isInverse && (vital.rawValue ?? 0) > 80 ? 'linear-gradient(90deg, var(--accent-green), #00ff88)' : 
-                                   !vital.isInverse && (vital.rawValue ?? 0) > 50 ? 'linear-gradient(90deg, var(--accent-yellow), #ffdd00)' : 
-                                   !vital.isInverse && (vital.rawValue ?? 0) > 30 ? 'linear-gradient(90deg, var(--accent-orange), #ff8800)' : 
-                                   vital.isInverse && (vital.rawValue ?? 0) === 0 ? 'linear-gradient(90deg, var(--accent-green), #00ff88)' :
+                      <span style={{ color: 'var(--accent-cyan)' }}>{vital.rawValue ?? 0}</span>
+                      <span style={{ color: 'var(--text-tertiary)', margin: '0 0.3rem' }}>/</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{vital.baseMax}</span>
+                      <span style={{ 
+                        marginLeft: '0.5rem',
+                        color: (vital.rawValue ?? 0) > 80 ? 'var(--accent-green)' : 
+                               (vital.rawValue ?? 0) > 50 ? 'var(--accent-yellow)' : 
+                               (vital.rawValue ?? 0) > 30 ? 'var(--accent-orange)' : 'var(--accent-red)'
+                      }}>
+                        ({Math.min(100, ((vital.rawValue ?? 0) / vital.baseMax) * 100).toFixed(0)}%)
+                      </span>
+                    </span>
+                  </div>
+                  <div style={{ 
+                    width: '100%', 
+                    height: '12px', 
+                    background: 'var(--terminal-bg-dark)',
+                    borderRadius: 'var(--radius-sm)',
+                    overflow: 'hidden',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)'
+                  }}>
+                    <div style={{ 
+                      width: `${Math.min(100, ((vital.rawValue ?? 0) / vital.baseMax) * 100)}%`,
+                      height: '100%',
+                      background: (vital.rawValue ?? 0) > 80 ? 'linear-gradient(90deg, var(--accent-green), #00ff88)' : 
+                                 (vital.rawValue ?? 0) > 50 ? 'linear-gradient(90deg, var(--accent-yellow), #ffdd00)' : 
+                                 (vital.rawValue ?? 0) > 30 ? 'linear-gradient(90deg, var(--accent-orange), #ff8800)' : 
                                                       'linear-gradient(90deg, var(--accent-red), #ff4444)',
-                        transition: 'width 0.5s ease',
-                        boxShadow: `0 0 10px ${!vital.isInverse && (vital.rawValue ?? 0) > 80 ? 'var(--accent-green)' : !vital.isInverse && (vital.rawValue ?? 0) > 50 ? 'var(--accent-yellow)' : vital.isInverse && (vital.rawValue ?? 0) === 0 ? 'var(--accent-green)' : 'var(--accent-red)'}`
-                      }} />
-                    </div>
+                      transition: 'width 0.5s ease',
+                      boxShadow: `0 0 10px ${(vital.rawValue ?? 0) > 80 ? 'var(--accent-green)' : (vital.rawValue ?? 0) > 50 ? 'var(--accent-yellow)' : 'var(--accent-red)'}`
+                    }} />
                   </div>
-                ))}
-              </div>
-
-              {/* HIDDEN - MVP LAUNCH: Skills & Expertise. All skill names are numeric IDs due to async mapping bug. Re-enable after mapping fix. */}
-              {false && selectedCrewMember! && selectedCrewMember!.skills && selectedCrewMember!.skills.length > 0 && (
-                <>
-                  <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
-                    Skills & Expertise
-                  </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
-                    {selectedCrewMember!.skills!.map((skill, idx) => (
-                      <div key={idx} className="stat-box">
-                        <div className="stat-label">{skill.skillName}</div>
-                        <div className="stat-value">{skill.level}</div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+                </div>
+              ))}
+            </div>
           </>
         )}
       </TerminalPanel>
 
-      {/* Dev Data Inspector - Only visible in Debug Mode */}
       {debugMode && (
         <div style={{ 
           marginTop: 'var(--space-xl)', 
@@ -1205,45 +959,43 @@ export default function DevDashboard() {
               alignItems: 'center'
             }}>
               <span>🐛 DEBUG: JSON Data Explorer (XML → JSON → Site)</span>
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                // Custom replacer to properly serialize Date objects and other types
-                const replacer = (_key: string, value: any) => {
-                  // Convert Date objects to ISO strings for readability
-                  if (value instanceof Date) {
-                    return value.toISOString()
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  const replacer = (_key: string, value: any) => {
+                    if (value instanceof Date) {
+                      return value.toISOString()
+                    }
+                    return value
                   }
-                  return value
-                }
-                const dataStr = JSON.stringify(gameSession, replacer, 2)
-                const blob = new Blob([dataStr], { type: 'application/json' })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = `${gameSession.saveFileName.replace('.xml', '')}_parsed.json`
-                document.body.appendChild(a)
-                a.click()
-                document.body.removeChild(a)
-                URL.revokeObjectURL(url)
-              }}
-              className="btn-terminal"
-              style={{ 
-                padding: '0.5rem 1rem',
-                fontSize: '0.85rem',
-                background: 'var(--accent-cyan)',
-                borderColor: 'var(--accent-cyan)',
-                color: 'var(--bg-primary)'
-              }}
-            >
-              💾 Download JSON
-            </button>
-          </summary>
-          <div style={{ marginTop: 'var(--space-md)' }}>
-            <JsonTreeViewer data={gameSession} rootLabel="GameSession" />
-          </div>
-        </details>
-      </div>
+                  const dataStr = JSON.stringify(gameSession, replacer, 2)
+                  const blob = new Blob([dataStr], { type: 'application/json' })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = `${gameSession.saveFileName.replace('.xml', '')}_parsed.json`
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  URL.revokeObjectURL(url)
+                }}
+                className="btn-terminal"
+                style={{ 
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.85rem',
+                  background: 'var(--accent-cyan)',
+                  borderColor: 'var(--accent-cyan)',
+                  color: 'var(--bg-primary)'
+                }}
+              >
+                💾 Download JSON
+              </button>
+            </summary>
+            <div style={{ marginTop: 'var(--space-md)' }}>
+              <JsonTreeViewer data={gameSession} rootLabel="GameSession" />
+            </div>
+          </details>
+        </div>
       )}
     </div>
   )

@@ -173,6 +173,7 @@ export function searchMappings(
  */
 export function getCategoryDisplayName(category: keyof IdMappings): string {
   const names: Record<keyof IdMappings, string> = {
+    attributes: 'Attributes',
     skills: 'Skills',
     traits: 'Traits',
     occupations: 'Occupations',
