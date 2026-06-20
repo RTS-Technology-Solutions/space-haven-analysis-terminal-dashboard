@@ -329,7 +329,7 @@ class XmlStructureAnalyzer {
     // Group by tag type
     const tagIdMap = new Map<string, Set<string>>()
     
-    for (const [idValue, locations] of this.idRegistry) {
+    for (const [, locations] of this.idRegistry) {
       for (const loc of locations) {
         if (!tagIdMap.has(loc.tag)) {
           tagIdMap.set(loc.tag, new Set())

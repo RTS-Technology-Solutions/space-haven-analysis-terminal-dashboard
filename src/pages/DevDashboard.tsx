@@ -224,7 +224,7 @@ export default function DevDashboard() {
       const xmlBlob = new Blob([originalXmlText], { type: 'text/xml' })
       
       // 2. Prepare JSON file
-      const replacer = (_key: string, value: any) => {
+      const replacer = (_key: string, value: unknown) => {
         if (value instanceof Date) {
           return value.toISOString()
         }
@@ -889,7 +889,8 @@ export default function DevDashboard() {
                 <div className="stat-value">{selectedShip.crew.length}</div>
               </div>
               {/* HIDDEN - MVP LAUNCH: Hull Integrity, Power Efficiency, Avg Health/Mood calculations depend on id_mappings max values. Re-enable after mapping fix. */}
-              {false && selectedShip && (
+              {/* eslint-disable-next-line no-constant-binary-expression */}
+              {selectedShip && false && (
                 <>
                   <div className="stat-box">
                     <div className="stat-label">
@@ -948,25 +949,27 @@ export default function DevDashboard() {
             </div>
 
             {/* HIDDEN - MVP LAUNCH: Storage & Inventory. All item names are numeric IDs due to async mapping bug. Re-enable after mapping fix. */}
-            {false && (() => {
-              // Aggregate all inventory items from all elements
-              const allInventory: Record<string, { name: string, quantity: number }> = {}
-              selectedShip!.elements.forEach(elem => {
-                elem.inventory.forEach(item => {
-                  if (!allInventory[item.itemId]) {
-                    allInventory[item.itemId] = { name: item.itemName, quantity: 0 }
-                  }
-                  allInventory[item.itemId].quantity += item.quantity
+            {(() => {
+              // eslint-disable-next-line no-constant-condition, no-constant-binary-expression
+              if (false && selectedShip) {
+                // Aggregate all inventory items from all elements
+                const allInventory: Record<string, { name: string, quantity: number }> = {}
+                selectedShip!.elements.forEach(elem => {
+                  elem.inventory.forEach(item => {
+                    if (!allInventory[item.itemId]) {
+                      allInventory[item.itemId] = { name: item.itemName, quantity: 0 }
+                    }
+                    allInventory[item.itemId].quantity += item.quantity
+                  })
                 })
-              })
-              
-              const inventoryArray = Object.entries(allInventory).map(([id, data]) => ({
-                itemId: id,
-                itemName: data.name,
-                quantity: data.quantity
-              })).sort((a, b) => b.quantity - a.quantity)
-              
-              return (
+                
+                const inventoryArray = Object.entries(allInventory).map(([id, data]) => ({
+                  itemId: id,
+                  itemName: data.name,
+                  quantity: data.quantity
+                })).sort((a, b) => b.quantity - a.quantity)
+                
+                return (
                 <>
                   <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
                     📦 Storage & Inventory
@@ -1030,6 +1033,8 @@ export default function DevDashboard() {
                   </div>
                 </>
               )
+              }
+              return null
             })()}
           </>
         )}
@@ -1157,7 +1162,7 @@ export default function DevDashboard() {
                                    vital.isInverse && (vital.rawValue ?? 0) === 0 ? 'linear-gradient(90deg, var(--accent-green), #00ff88)' :
                                                       'linear-gradient(90deg, var(--accent-red), #ff4444)',
                         transition: 'width 0.5s ease',
-                        boxShadow: `0 0 10px ${!vital.isInverse && (vital.rawValue ?? 0) > 80 ? 'var(--accent-green)' : !vital.isInverse && (vital.rawValue ?? 0) > 50 ? 'var(--accent-yellow)' : vital.isInverse && (vital.rawValue ?? 0) === 0 ? 'var(--accent-green)' : 'var(--accent-red)'}`
+                        boxShadow: `0 0 10px ${!vital.isInverse && (vital.rawValue ?? 0) > 80 ? 'var(--accent-green)' : (!vital.isInverse && (vital.rawValue ?? 0) > 50) ? 'var(--accent-yellow)' : (vital.isInverse && (vital.rawValue ?? 0) === 0) ? 'var(--accent-green)' : 'var(--accent-red)'}`
                       }} />
                     </div>
                   </div>
@@ -1165,21 +1170,27 @@ export default function DevDashboard() {
               </div>
 
               {/* HIDDEN - MVP LAUNCH: Skills & Expertise. All skill names are numeric IDs due to async mapping bug. Re-enable after mapping fix. */}
-              {false && selectedCrewMember! && selectedCrewMember!.skills && selectedCrewMember!.skills.length > 0 && (
-                <>
-                  <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
-                    Skills & Expertise
-                  </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
-                    {selectedCrewMember!.skills!.map((skill, idx) => (
-                      <div key={idx} className="stat-box">
-                        <div className="stat-label">{skill.skillName}</div>
-                        <div className="stat-value">{skill.level}</div>
+              {(() => {
+                // eslint-disable-next-line no-constant-condition
+                if (selectedCrewMember && selectedCrewMember.skills && selectedCrewMember.skills.length > 0 && false) {
+                  return (
+                    <>
+                      <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1rem', marginBottom: 'var(--space-md)', textTransform: 'uppercase' }}>
+                        Skills & Expertise
+                      </h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
+                        {selectedCrewMember?.skills?.map((skill, idx) => (
+                          <div key={idx} className="stat-box">
+                            <div className="stat-label">{skill.skillName}</div>
+                            <div className="stat-value">{skill.level}</div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </>
-              )}
+                    </>
+                  )
+                }
+                return null
+              })()}
           </>
         )}
       </TerminalPanel>
@@ -1209,7 +1220,7 @@ export default function DevDashboard() {
               onClick={(e) => {
                 e.preventDefault()
                 // Custom replacer to properly serialize Date objects and other types
-                const replacer = (_key: string, value: any) => {
+                const replacer = (_key: string, value: unknown) => {
                   // Convert Date objects to ISO strings for readability
                   if (value instanceof Date) {
                     return value.toISOString()

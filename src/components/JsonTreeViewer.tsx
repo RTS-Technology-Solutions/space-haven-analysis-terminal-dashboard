@@ -2,13 +2,13 @@ import { useState } from 'react'
 import './JsonTreeViewer.css'
 
 interface JsonTreeViewerProps {
-  data: any
+  data: unknown
   rootLabel?: string
 }
 
 interface TreeNodeProps {
   keyName: string
-  value: any
+  value: unknown
   level: number
   path: string
 }
@@ -93,7 +93,7 @@ const TreeNode = ({ keyName, value, level, path }: TreeNodeProps) => {
       {isExpanded && isExpandable && (
         <div className="json-tree-children">
           {isArray ? (
-            value.map((item: any, index: number) => (
+            value.map((item: unknown, index: number) => (
               <TreeNode
                 key={index}
                 keyName={`[${index}]`}

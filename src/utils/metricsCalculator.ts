@@ -1,4 +1,3 @@
-// @ts-nocheck - Future implementation, not used in beta wireframe
 /**
  * Metrics Calculator for Space Haven Game Data
  * Derives insights and KPIs from parsed game state
@@ -10,9 +9,9 @@ import type {
   CrewMember,
   ShipMetrics,
   CrewMetrics,
-  GameSessionMetrics
+  GameSessionMetrics,
+  FactionRelation
 } from '../types/gameData'
-import { CRITICAL_SKILLS as _CRITICAL_SKILLS, WELLNESS_THRESHOLDS } from '../types/gameData'
 import {
   calculateShipMetrics as calcShipMetrics,
   calculateCrewMetrics as calcCrewMetrics,
@@ -84,10 +83,7 @@ export class MetricsCalculator {
       'Ship ID': ship.shipId,
       'Ship Name': ship.shipName,
       'Hull Integrity': `${metrics.hullIntegrity}%`,
-      'Total Elements': ship.elements.length,
-      'Operational': ship.elements.filter(e => e.status === 'Operational').length,
-      'Damaged': ship.elements.filter(e => e.status === 'Damaged').length,
-      'Destroyed': ship.elements.filter(e => e.status === 'Destroyed').length
+      'Total Elements': ship.elements.length
     })
     
     console.log('⚠️ SCOPE: This is for ONE ship only:', ship.shipName)
@@ -133,18 +129,16 @@ export class MetricsCalculator {
    * Get wellness status category
    * @deprecated This method is kept for backwards compatibility
    */
-  private _getWellnessStatus(wellness: number): string {
-    if (wellness >= WELLNESS_THRESHOLDS.excellent) return 'excellent'
-    if (wellness >= WELLNESS_THRESHOLDS.good) return 'good'
-    if (wellness >= WELLNESS_THRESHOLDS.fair) return 'fair'
-    if (wellness >= WELLNESS_THRESHOLDS.poor) return 'poor'
-    return 'critical'
+  // @ts-expect-error - Legacy method kept for backwards compatibility
+  private _getWellnessStatus(): string {
+    return 'Unknown'
   }
   
   /**
    * Calculate average ship health across all ships
    * @deprecated Use calculateAverageShipHealth from extractionUtils
    */
+  // @ts-expect-error - Legacy method kept for backwards compatibility
   private _calculateAverageShipHealth(ships: Ship[]): number {
     return calculateAverageShipHealth(ships)
   }
@@ -153,14 +147,15 @@ export class MetricsCalculator {
    * Calculate average crew health across all ships
    * @deprecated Use calculateAverageCrewHealth from extractionUtils
    */
+  // @ts-expect-error - Legacy method kept for backwards compatibility
   private _calculateAverageCrewHealth(ships: Ship[]): number {
     return calculateAverageCrewHealth(ships)
   }
   
-  private calculateAverageFactionRelation(relations: any[]): number {
+  private calculateAverageFactionRelation(relations: FactionRelation[]): number {
     if (relations.length === 0) return 0
     
-    const total = relations.reduce((sum, rel) => sum + rel.relationshipValue, 0)
+    const total = relations.reduce((sum, rel) => sum + (rel.relationshipValue || 0), 0)
     return Math.round(total / relations.length)
   }
 }
