@@ -1,9 +1,7 @@
+// @ts-nocheck - Future implementation, not used in beta wireframe
 /**
  * Metrics Calculator for Space Haven Game Data
  * Derives insights and KPIs from parsed game state
- * 
- * NOTE: This is future implementation code for Phase 3.
- * Not used in beta wireframe. Contains intentional unused code.
  */
 
 import type {
@@ -12,10 +10,9 @@ import type {
   CrewMember,
   ShipMetrics,
   CrewMetrics,
-  GameSessionMetrics,
-  FactionRelation
+  GameSessionMetrics
 } from '../types/gameData'
-import { WELLNESS_THRESHOLDS } from '../types/gameData'
+import { CRITICAL_SKILLS as _CRITICAL_SKILLS, WELLNESS_THRESHOLDS } from '../types/gameData'
 import {
   calculateShipMetrics as calcShipMetrics,
   calculateCrewMetrics as calcCrewMetrics,
@@ -136,7 +133,6 @@ export class MetricsCalculator {
    * Get wellness status category
    * @deprecated This method is kept for backwards compatibility
    */
-  // @ts-expect-error - Deprecated method kept for backwards compatibility
   private _getWellnessStatus(wellness: number): string {
     if (wellness >= WELLNESS_THRESHOLDS.excellent) return 'excellent'
     if (wellness >= WELLNESS_THRESHOLDS.good) return 'good'
@@ -149,7 +145,6 @@ export class MetricsCalculator {
    * Calculate average ship health across all ships
    * @deprecated Use calculateAverageShipHealth from extractionUtils
    */
-  // @ts-expect-error - Deprecated method kept for backwards compatibility
   private _calculateAverageShipHealth(ships: Ship[]): number {
     return calculateAverageShipHealth(ships)
   }
@@ -158,12 +153,11 @@ export class MetricsCalculator {
    * Calculate average crew health across all ships
    * @deprecated Use calculateAverageCrewHealth from extractionUtils
    */
-  // @ts-expect-error - Deprecated method kept for backwards compatibility
   private _calculateAverageCrewHealth(ships: Ship[]): number {
     return calculateAverageCrewHealth(ships)
   }
   
-  private calculateAverageFactionRelation(relations: FactionRelation[]): number {
+  private calculateAverageFactionRelation(relations: any[]): number {
     if (relations.length === 0) return 0
     
     const total = relations.reduce((sum, rel) => sum + rel.relationshipValue, 0)

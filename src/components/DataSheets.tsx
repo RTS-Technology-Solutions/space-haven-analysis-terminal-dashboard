@@ -82,7 +82,14 @@ export default function DataSheets() {
     'explosions',
     'items',
     'processes',
-    'modules'
+    'modules',
+    'tileAttributes',
+    'tileTypes',
+    'starmapAttributes',
+    'systemAttributes',
+    'relationshipAttributes',
+    'elementTypes',
+    'shipAttributes'
   ]
 
   return (
@@ -154,6 +161,7 @@ export default function DataSheets() {
                 <tr>
                   <th style={{ width: '120px' }}>ID</th>
                   <th>NAME</th>
+                  {filteredData.some(item => item.description) && <th>DESCRIPTION</th>}
                 </tr>
               </thead>
               <tbody>
@@ -163,6 +171,11 @@ export default function DataSheets() {
                       <code className="id-code">{item.id}</code>
                     </td>
                     <td>{item.name}</td>
+                    {filteredData.some(i => i.description) && (
+                      <td style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-sm)' }}>
+                        {item.description || ''}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

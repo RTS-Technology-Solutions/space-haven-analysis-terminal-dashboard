@@ -1,63 +1,124 @@
+<!--
+    Space Haven ID Mappings Dictionary
+    
+    Structure Pattern:
+    - Each major section contains entries organized by information type
+    - All entries follow consistent nesting: <name> first, then <description>, then other relevant fields
+    - Example pattern:
+        <section>
+            <entry>
+                <name>EntryName</name>
+                <description>What this entry represents</description>
+                <otherField>Additional data</otherField>
+            </entry>
+        </section>
+    
+    Data Sources:
+    - Space Haven Editor Project (https://spacehaven-editor.com)
+    - Save File Schema Analysis (2026-06-05)
+    
+    Last Updated: 2026-06-05
+-->
 <mappings>
     <skills>
+        <description>
+            Character skills stored in XML as &lt;skills&gt;&lt;s sk="2" level="3" mxn="8" exp="2123"/&gt;
+            sk = skill ID, level = current level, mxn = max natural level, exp = experience points
+        </description>
         <skill>
-            <id>1</id><name>Construct</name>
+            <id>1</id><name>construct</name>
         </skill>
         <skill>
-            <id>2</id><name>Mining</name>
+            <id>2</id><name>mining</name>
         </skill>
         <skill>
-            <id>3</id><name>Botany</name>
+            <id>3</id><name>botany</name>
         </skill>
         <skill>
-            <id>4</id><name>Construction</name>
+            <id>4</id><name>construct</name>
         </skill>
         <skill>
-            <id>5</id><name>Industry</name>
+            <id>5</id><name>industry</name>
         </skill>
         <skill>
-            <id>6</id><name>Medical</name>
+            <id>6</id><name>medical</name>
         </skill>
         <skill>
-            <id>7</id><name>Gunner</name>
+            <id>7</id><name>gunner</name>
         </skill>
         <skill>
-            <id>8</id><name>Shielding</name>
+            <id>8</id><name>shielding</name>
         </skill>
         <skill>
-            <id>9</id><name>Operations</name>
+            <id>9</id><name>operations</name>
         </skill>
         <skill>
-            <id>10</id><name>Weapons</name>
+            <id>10</id><name>weapons</name>
         </skill>
         <skill>
-            <id>12</id><name>Carry</name>
+            <id>12</id><name>carry capacity</name>
         </skill>
         <skill>
             <id>13</id><name>Unknown (unused)</name>
         </skill>
         <skill>
-            <id>14</id><name>Navigation</name>
+            <id>14</id><name>navigation</name>
         </skill>
         <skill>
-            <id>16</id><name>Research</name>
+            <id>16</id><name>research</name>
         </skill>
         <skill>
-            <id>22</id><name>Piloting</name>
-        </skill>
-        <skill>
-            <id>210</id><name>Agility</name>
-        </skill>
-        <skill>
-            <id>212</id><name>Directing</name>
-        </skill>
-        <skill>
-            <id>213</id><name>Processing</name>
-        </skill>
-        <skill>
-            <id>214</id><name>Combat Operations</name>
+            <id>22</id><name>piloting</name>
         </skill>
     </skills>
+
+    <modifiers>
+        <description>
+            Personal modifiers stored in XML as &lt;rate&gt;&lt;m ac="X"/&gt; within condition tags
+            ac = action code for the modifier type, values are percentages (can be negative)
+        </description>
+        <modifier>
+            <id>-1</id><name>accuracy</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-2</id><name>accident</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-3</id><name>working speed</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-4</id><name>recovery</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-5</id><name>learning</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>-6</id><name>surrender</name><unit>%</unit>
+        </modifier>
+        <modifier>
+            <id>0</id><name>carry capacity</name><unit>int</unit>
+        </modifier>
+    </modifiers>
+
+    <attributes>
+        <description>
+            Character attributes (Bravery, Zest, Intelligence, Perception)
+            Stored in XML as &lt;attr&gt;&lt;a id="210" points="2"/&gt;
+            These are DIFFERENT from skills and represent core character traits.
+        </description>
+        <attribute>
+            <id>210</id><name>Bravery</name>
+        </attribute>
+        <attribute>
+            <id>212</id><name>Zest</name>
+        </attribute>
+        <attribute>
+            <id>213</id><name>Intelligence</name>
+        </attribute>
+        <attribute>
+            <id>214</id><name>Perception</name>
+        </attribute>
+    </attributes>
 
     <traits>
         <trait>
@@ -937,4 +998,812 @@
             <id>319</id><name>Leisure Arcade Console</name>
         </module>
     </modules>
+
+    <!-- Ship Tile Attributes (from <e> elements) -->
+    <tileAttributes>
+        <attribute>
+            <name>m</name>
+            <description>Module/Tile Type ID - References tile types (hull, walls, facilities)</description>
+            <valueType>integer</valueType>
+            <specialValues>
+                <value id="-2">Forbidden area (borders, docking zones, behind engines)</value>
+                <value id="0">Empty unbuilt space</value>
+            </specialValues>
+        </attribute>
+        <attribute>
+            <name>x</name>
+            <description>Tile X coordinate (grid position)</description>
+            <valueType>integer</valueType>
+        </attribute>
+        <attribute>
+            <name>y</name>
+            <description>Tile Y coordinate (grid position)</description>
+            <valueType>integer</valueType>
+        </attribute>
+        <attribute>
+            <name>id</name>
+            <description>Unique tile instance ID</description>
+            <valueType>integer</valueType>
+        </attribute>
+        <attribute>
+            <name>hf</name>
+            <description>Heat/Fuel value (observed range: 116-394)</description>
+            <valueType>integer</valueType>
+            <classification>TILE_HEAT_FUEL</classification>
+        </attribute>
+        <attribute>
+            <name>atm</name>
+            <description>Atmosphere pressure/composition (observed range: 0-16785593)</description>
+            <valueType>integer</valueType>
+            <classification>TILE_ATMOSPHERE</classification>
+        </attribute>
+        <attribute>
+            <name>atm2</name>
+            <description>Secondary atmosphere value (observed range: 0-5)</description>
+            <valueType>integer</valueType>
+            <classification>TILE_ATMOSPHERE</classification>
+        </attribute>
+        <attribute>
+            <name>fg</name>
+            <description>Foreground layer (common value: 191)</description>
+            <valueType>integer</valueType>
+            <classification>TILE_FOREGROUND</classification>
+        </attribute>
+        <attribute>
+            <name>sh</name>
+            <description>Shield/shielding value (observed: 32, 61504, 144)</description>
+            <valueType>integer</valueType>
+            <classification>TILE_SHIELD</classification>
+        </attribute>
+        <attribute>
+            <name>env</name>
+            <description>Environment flags (common value: 1792)</description>
+            <valueType>integer</valueType>
+            <classification>TILE_ENVIRONMENT</classification>
+        </attribute>
+        <attribute>
+            <name>ht</name>
+            <description>Heat value (observed range: 9-12)</description>
+            <valueType>integer</valueType>
+            <classification>TILE_HEAT</classification>
+        </attribute>
+        <attribute>
+            <name>cfb</name>
+            <description>Unknown flag (common value: 1)</description>
+            <valueType>integer</valueType>
+            <status>NEEDS_PLAYER_KNOWLEDGE</status>
+        </attribute>
+        <attribute>
+            <name>invw</name>
+            <description>Inventory width? (common value: 44)</description>
+            <valueType>integer</valueType>
+            <classification>TILE_INVENTORY</classification>
+        </attribute>
+        <attribute>
+            <name>rot</name>
+            <description>Rotation (R0, R90, R180, R270)</description>
+            <valueType>string</valueType>
+        </attribute>
+        <attribute>
+            <name>rand</name>
+            <description>Random seed for tile generation/variation</description>
+            <valueType>string</valueType>
+        </attribute>
+        <attribute>
+            <name>inrand</name>
+            <description>Internal random seed</description>
+            <valueType>string</valueType>
+        </attribute>
+        <attribute>
+            <name>ov</name>
+            <description>Overlay? (NEEDS PLAYER KNOWLEDGE)</description>
+            <valueType>integer</valueType>
+            <status>NEEDS_PLAYER_KNOWLEDGE</status>
+        </attribute>
+    </tileAttributes>
+
+    <!-- Tile Type Categories (m attribute values) -->
+    <tileTypes>
+        <tileType>
+            <name>HULL_BLOCKS</name>
+            <description>Hull structure blocks</description>
+            <ids>38, 46, 47, 206, 1144, 1149, 1711, 1713, 1794, 2758, 2759, 2760, 2762, 2763, 3029, 3031</ids>
+        </tileType>
+        <tileType>
+            <name>WALLS</name>
+            <description>Interior wall partitions</description>
+            <ids>31, 43, 44, 48, 115, 122, 423, 425, 426, 428, 438, 2757, 2764, 2765, 2767, 2768, 2769, 2770, 2771, 2772, 2861, 2862, 2863, 2864, 2866</ids>
+        </tileType>
+        <tileType>
+            <name>DOORS</name>
+            <description>Door modules</description>
+            <ids>25, 424, 905, 2755</ids>
+        </tileType>
+        <tileType>
+            <name>ENGINES</name>
+            <description>Hyperdrive engines</description>
+            <ids>2655, 851</ids>
+        </tileType>
+        <tileType>
+            <name>STORAGE</name>
+            <description>Storage facilities</description>
+            <ids>82, 632</ids>
+        </tileType>
+    </tileTypes>
+
+    <!-- Starmap Attributes -->
+    <starmapAttributes>
+        <attribute>
+            <name>id</name>
+            <description>Starmap ID</description>
+            <valueType>integer</valueType>
+        </attribute>
+        <attribute>
+            <name>w</name>
+            <description>Starmap width dimension</description>
+            <valueType>integer</valueType>
+            <classification>DIMENSION</classification>
+        </attribute>
+        <attribute>
+            <name>h</name>
+            <description>Starmap height dimension</description>
+            <valueType>integer</valueType>
+            <classification>DIMENSION</classification>
+        </attribute>
+        <attribute>
+            <name>pa</name>
+            <description>Unknown programmatic value (observed: 225)</description>
+            <valueType>integer</valueType>
+            <status>NEEDS_PLAYER_KNOWLEDGE</status>
+            <note>User confirmed: no player-visible significance</note>
+        </attribute>
+        <attribute>
+            <name>sys</name>
+            <description>Current system ID (player's current location)</description>
+            <valueType>integer</valueType>
+            <classification>ID_REFERENCE</classification>
+            <example>31 = Rosa Jurati Region (verified)</example>
+        </attribute>
+        <attribute>
+            <name>objectIdCounter</name>
+            <description>Object ID counter for starmap objects</description>
+            <valueType>integer</valueType>
+            <classification>COUNTER</classification>
+        </attribute>
+    </starmapAttributes>
+
+    <!-- System Attributes -->
+    <systemAttributes>
+        <attribute>
+            <name>systemId</name>
+            <description>Unique system identifier</description>
+            <valueType>integer</valueType>
+            <classification>ID_REFERENCE</classification>
+        </attribute>
+        <attribute>
+            <name>sn</name>
+            <description>System name (hex-encoded string)</description>
+            <valueType>hexString</valueType>
+            <example>526f736120... = "Rosa Jurati Region"</example>
+        </attribute>
+        <attribute>
+            <name>smn</name>
+            <description>Short system name (hex-encoded)</description>
+            <valueType>hexString</valueType>
+        </attribute>
+        <attribute>
+            <name>cn</name>
+            <description>Unknown (observed range: 1-271)</description>
+            <valueType>integer</valueType>
+            <status>NEEDS_PLAYER_KNOWLEDGE</status>
+        </attribute>
+        <attribute>
+            <name>gen</name>
+            <description>Generated flag (boolean: 0 or 1)</description>
+            <valueType>integer</valueType>
+            <classification>FLAG</classification>
+        </attribute>
+        <attribute>
+            <name>visBig</name>
+            <description>Visibility flag - big map? (value: 1)</description>
+            <valueType>integer</valueType>
+            <classification>FLAG</classification>
+            <status>NEEDS_PLAYER_KNOWLEDGE</status>
+        </attribute>
+        <attribute>
+            <name>fvisBig</name>
+            <description>Full visibility flag - big map? (value: 1)</description>
+            <valueType>integer</valueType>
+            <classification>FLAG</classification>
+            <status>NEEDS_PLAYER_KNOWLEDGE</status>
+        </attribute>
+    </systemAttributes>
+
+    <!-- Relationship Attributes -->
+    <relationshipAttributes>
+        <attribute>
+            <name>attraction</name>
+            <description>NPC attraction value between characters</description>
+            <valueType>integer</valueType>
+            <range>-99 to 99</range>
+            <classification>RELATIONSHIP_VALUE</classification>
+        </attribute>
+        <attribute>
+            <name>compatibility</name>
+            <description>NPC compatibility value between characters</description>
+            <valueType>integer</valueType>
+            <range>-94 to 99</range>
+            <classification>RELATIONSHIP_VALUE</classification>
+        </attribute>
+        <attribute>
+            <name>friendship</name>
+            <description>NPC friendship value between characters</description>
+            <valueType>integer</valueType>
+            <range>-93 to 99</range>
+            <classification>RELATIONSHIP_VALUE</classification>
+        </attribute>
+        <attribute>
+            <name>relationship</name>
+            <description>General relationship value between characters</description>
+            <valueType>integer</valueType>
+            <range>-99 to 96</range>
+            <classification>RELATIONSHIP_VALUE</classification>
+        </attribute>
+    </relationshipAttributes>
+
+    <!-- Element Type Attributes (type= attribute values) -->
+    <elementTypes>
+        <elementType>
+            <name>Star</name>
+            <description>Star system celestial body</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>Planet</name>
+            <description>Planetary body</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>AsteroidField</name>
+            <description>Asteroid field region</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>Asteroid</name>
+            <description>Individual asteroid</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>Ship</name>
+            <description>Player or NPC ship</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>Station</name>
+            <description>Space station</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>Resource</name>
+            <description>Resource deposit or object</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>Derelict</name>
+            <description>Derelict ship or structure</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>WarpGate</name>
+            <description>Warp gate for system travel</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>CryoPerson</name>
+            <description>Hireable crew in cryosleep</description>
+            <classification>GAME_OBJECT</classification>
+        </elementType>
+        <elementType>
+            <name>Rest</name>
+            <description>Crew rest action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>Build</name>
+            <description>Construction action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>Tend</name>
+            <description>Medical tend action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>Grow</name>
+            <description>Botany/farming action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>Talk</name>
+            <description>Social interaction action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>Research</name>
+            <description>Research action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>Equip</name>
+            <description>Equipment action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>Mine</name>
+            <description>Mining action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>ExploreDerelict</name>
+            <description>Exploration action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>Jump</name>
+            <description>Hyperdrive jump action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>PickupCargo</name>
+            <description>Cargo pickup action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+        <elementType>
+            <name>DeliverCargo</name>
+            <description>Cargo delivery action</description>
+            <classification>CREW_ACTION</classification>
+        </elementType>
+    </elementTypes>
+
+    <!-- Ship Attributes -->
+    <shipAttributes>
+        <attribute>
+            <name>sid</name>
+            <description>Ship ID</description>
+            <valueType>integer</valueType>
+            <classification>ID_REFERENCE</classification>
+        </attribute>
+        <attribute>
+            <name>sname</name>
+            <description>Ship name (stored as attribute, NOT child element)</description>
+            <valueType>string</valueType>
+            <example>"OSNX7-1", "CB KURASIC PARK"</example>
+        </attribute>
+        <attribute>
+            <name>sx</name>
+            <description>Ship X grid size</description>
+            <valueType>integer</valueType>
+            <classification>DIMENSION</classification>
+        </attribute>
+        <attribute>
+            <name>sy</name>
+            <description>Ship Y grid size</description>
+            <valueType>integer</valueType>
+            <classification>DIMENSION</classification>
+        </attribute>
+        <attribute>
+            <name>ox</name>
+            <description>Ship X offset position in space</description>
+            <valueType>integer</valueType>
+            <classification>POSITION</classification>
+        </attribute>
+        <attribute>
+            <name>oy</name>
+            <description>Ship Y offset position in space</description>
+            <valueType>integer</valueType>
+            <classification>POSITION</classification>
+        </attribute>
+        <attribute>
+            <name>sta</name>
+            <description>Station flag (1 = station, 0 = ship)</description>
+            <valueType>integer</valueType>
+            <classification>FLAG</classification>
+        </attribute>
+        <attribute>
+            <name>fog</name>
+            <description>Fog of war flag (true/false)</description>
+            <valueType>boolean</valueType>
+            <classification>FLAG</classification>
+        </attribute>
+        <attribute>
+            <name>real</name>
+            <description>Real/active ship flag (1 = active)</description>
+            <valueType>integer</valueType>
+            <classification>FLAG</classification>
+        </attribute>
+        <attribute>
+            <name>idCnt</name>
+            <description>Internal ID counter for ship objects</description>
+            <valueType>integer</valueType>
+            <classification>COUNTER</classification>
+        </attribute>
+    </shipAttributes>
+
+    <!-- Appendix: Classification Methodology -->
+    <appendix>
+        <section>
+            <name>DATA_SOURCES</name>
+            <source>
+                <name>Space Haven Editor Project</name>
+                <url>https://spacehaven-editor.com</url>
+                <contribution>ID mappings for skills, traits, conditions, resources, tile types</contribution>
+                <license>EUPL 1.2</license>
+            </source>
+            <source>
+                <name>Save File Schema Analysis</name>
+                <date>2026-06-05</date>
+                <contribution>Automated classification using type metadata, attribute analysis</contribution>
+                <method>Extracted 106,406 attributes from game save, applied pattern matching and ID mapping</method>
+            </source>
+        </section>
+
+        <section>
+            <name>CLASSIFICATION_CATEGORIES</name>
+            <classificationCategory>
+                <name>ID_REFERENCE</name>
+                <description>Database keys and object references (sid, id, systemId, etc.)</description>
+                <percentage>38.6%</percentage>
+            </classificationCategory>
+            <classificationCategory>
+                <name>GAME_OBJECT</name>
+                <description>Entities with type attributes (Stars, Planets, Ships, Stations)</description>
+                <percentage>21.5%</percentage>
+            </classificationCategory>
+            <classificationCategory>
+                <name>POSITION</name>
+                <description>Spatial coordinates (x, y, z, sx, sy, ox, oy)</description>
+                <percentage>4.5%</percentage>
+            </classificationCategory>
+            <classificationCategory>
+                <name>TILE_HEAT_FUEL</name>
+                <description>Ship tile heat/fuel values (hf attribute)</description>
+                <percentage>2.7%</percentage>
+            </classificationCategory>
+            <classificationCategory>
+                <name>RELATIONSHIP_VALUE</name>
+                <description>NPC relationship metrics (attraction, compatibility, friendship)</description>
+                <percentage>2.3%</percentage>
+            </classificationCategory>
+            <classificationCategory>
+                <name>TILE_ATMOSPHERE</name>
+                <description>Atmospheric pressure/composition (atm, atm2)</description>
+                <percentage>1.9%</percentage>
+            </classificationCategory>
+            <classificationCategory>
+                <name>VITAL_STAT</name>
+                <description>Crew vital statistics (Health, Food, Mood, Oxygen)</description>
+                <percentage>1.4%</percentage>
+            </classificationCategory>
+            <classificationCategory>
+                <name>DIMENSION</name>
+                <description>Size measurements (w, h, r for width/height/radius)</description>
+                <percentage>1.3%</percentage>
+            </classificationCategory>
+            <classificationCategory>
+                <name>CREW_ACTION</name>
+                <description>Task types (Rest, Build, Tend, Research)</description>
+                <percentage>1.0%</percentage>
+            </classificationCategory>
+            <classificationCategory>
+                <name>OTHER</name>
+                <description>Uncategorized values needing player knowledge</description>
+                <percentage>23.0%</percentage>
+            </classificationCategory>
+        </section>
+
+        <section>
+            <name>NEEDS_PLAYER_KNOWLEDGE</name>
+            <description>The following attributes could not be automatically classified and require player observation</description>
+            <unknownAttribute>
+                <name>pa</name>
+                <context>starmap@pa</context>
+                <observedValue>225</observedValue>
+                <userNote>No player-visible significance - programmatic value</userNote>
+            </unknownAttribute>
+            <unknownAttribute>
+                <name>cn</name>
+                <context>systems/l@cn</context>
+                <observedRange>1-271</observedRange>
+            </unknownAttribute>
+            <unknownAttribute>
+                <name>visBig</name>
+                <context>systems/l@visBig</context>
+                <observedValue>1</observedValue>
+                <hypothesis>Visibility flag for big starmap</hypothesis>
+            </unknownAttribute>
+            <unknownAttribute>
+                <name>fvisBig</name>
+                <context>systems/l@fvisBig</context>
+                <observedValue>1</observedValue>
+                <hypothesis>Full visibility flag for big starmap</hypothesis>
+            </unknownAttribute>
+            <unknownAttribute>
+                <name>cfb</name>
+                <context>ship/e@cfb</context>
+                <observedValue>1</observedValue>
+            </unknownAttribute>
+            <unknownAttribute>
+                <name>ov</name>
+                <context>ship/e@ov</context>
+                <hypothesis>Overlay attribute</hypothesis>
+            </unknownAttribute>
+            <unknownAttribute>
+                <name>traitlt1</name>
+                <context>root/game@traitlt1</context>
+                <observedValue>126</observedValue>
+            </unknownAttribute>
+        </section>
+
+        <section>
+            <name>VERIFIED_GAME_STATE</name>
+            <verification>
+                <date>2026-06-05</date>
+                <saveFile>game_20260605_1841.xml</saveFile>
+                <day>35</day>
+                <ship>
+                    <name>OSNX7-1</name>
+                    <sid>43</sid>
+                    <crewCount>6</crewCount>
+                    <expectedCrew>Dewayne, Elwin, Fio, Haruaki, Liam, Xiu</expectedCrew>
+                </ship>
+                <station>
+                    <name>CB KURASIC PARK</name>
+                    <sid>3151</sid>
+                    <sta>1</sta>
+                    <crewCount>10</crewCount>
+                    <ownership>NPC</ownership>
+                </station>
+                <location>
+                    <systemId>31</systemId>
+                    <systemName>Rosa Jurati Region</systemName>
+                </location>
+            </verification>
+        </section>
+
+        <section>
+            <name>IMPORTANT_PATTERNS</name>
+            <pattern>
+                <name>Attribute vs Child Element Storage</name>
+                <description>Ship names stored as sname ATTRIBUTE, not child element. Pattern applies to many simple values.</description>
+                <example>ship.get('sname') NOT ship.find('.//sname').text</example>
+            </pattern>
+            <pattern>
+                <name>Hex-Encoded Strings</name>
+                <description>System names stored as hex-encoded in 'sn' attribute</description>
+                <example>526f736120... decodes to "Rosa Jurati Region"</example>
+            </pattern>
+            <pattern>
+                <name>Crew Detection</name>
+                <description>Crew distinguished from other &lt;c&gt; elements by presence of &lt;pers&gt; child node</description>
+                <context>characters/c with pers = crew, characters/c without pers = conditions/prefs/etc</context>
+            </pattern>
+            <pattern>
+                <name>Type Metadata</name>
+                <description>type and flav attributes provide semantic classification for automatic field mapping</description>
+                <example>type="Star", type="Ship", type="Rest", type="Build"</example>
+            </pattern>
+        </section>
+
+        <section>
+            <name>ANALYSIS_METRICS</name>
+            <metric>
+                <name>Total XML Elements Analyzed</name>
+                <value>17,425</value>
+            </metric>
+            <metric>
+                <name>Total Attributes Extracted</name>
+                <value>106,406</value>
+            </metric>
+            <metric>
+                <name>Unique Tag+Attribute Combinations</name>
+                <value>979</value>
+            </metric>
+            <metric>
+                <name>Unique Type Values Discovered</name>
+                <value>79</value>
+            </metric>
+            <metric>
+                <name>Numeric Values Analyzed</name>
+                <value>89,444</value>
+            </metric>
+            <metric>
+                <name>Unique Value Patterns</name>
+                <value>10,280</value>
+            </metric>
+            <metric>
+                <name>Auto-Classification Success Rate</name>
+                <value>77.0%</value>
+                <note>After applying ID mappings from Space Haven Editor</note>
+            </metric>
+        </section>
+    </appendix>
+
+    <!--
+        ELEMENT MAX VALUES
+        
+        Purpose: Define maximum health and shield values for ship elements.
+        These values are NOT percentages - they are absolute values that can vary
+        by module type and upgrade level.
+        
+        Usage: When calculating hull integrity or shield percentages, divide
+        current value by the max value for that element type.
+        
+        Data Source: Analyzed from game_20260605_1841.xml save file
+        Last Updated: 2026-06-06
+        
+        Notes:
+        - Hull health (ht attribute): Max varies by module type and upgrade tier
+        - Shield strength (sh attribute): Typically 32 for most modules, 144 for hull sections
+        - Elements without ht/sh attributes should be excluded from calculations
+        - Module type 46 appears to be floor/hull sections (primary structure)
+    -->
+    <elementMaxValues>
+        <element>
+            <moduleType>46</moduleType>
+            <name>Floor/Hull Section</name>
+            <maxHullHealth>13</maxHullHealth>
+            <maxShieldStrength>144</maxShieldStrength>
+            <notes>Primary ship structure. Health typically 12 when undamaged, can go up to 13 with upgrades.</notes>
+        </element>
+        <element>
+            <moduleType>44</moduleType>
+            <name>Standard Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Generic module type with standard shielding</notes>
+        </element>
+        <element>
+            <moduleType>25</moduleType>
+            <name>Facility Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Facility-type modules</notes>
+        </element>
+        <element>
+            <moduleType>90</moduleType>
+            <name>Utility Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Utility systems</notes>
+        </element>
+        <element>
+            <moduleType>122</moduleType>
+            <name>Special Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Special purpose module</notes>
+        </element>
+        <element>
+            <moduleType>305</moduleType>
+            <name>Advanced Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Advanced systems</notes>
+        </element>
+        <element>
+            <moduleType>424</moduleType>
+            <name>Defense Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Defense systems</notes>
+        </element>
+        <element>
+            <moduleType>2956</moduleType>
+            <name>Production Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Production facilities</notes>
+        </element>
+        <element>
+            <moduleType>2977</moduleType>
+            <name>Storage Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Storage systems</notes>
+        </element>
+        <element>
+            <moduleType>3168</moduleType>
+            <name>Research Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Research facilities</notes>
+        </element>
+        <element>
+            <moduleType>4087</moduleType>
+            <name>Power Module</name>
+            <maxHullHealth>12</maxHullHealth>
+            <maxShieldStrength>32</maxShieldStrength>
+            <notes>Power generation systems</notes>
+        </element>
+    </elementMaxValues>
+
+    <!--
+        CREW VITAL STAT MAX VALUES
+        
+        Purpose: Define base maximum values for crew vital statistics.
+        These are NOT simple 0-100 percentages - values can exceed 100 based on
+        character traits, upgrades, and game progression.
+        
+        Usage: When displaying crew stats as percentages, use these as baseline
+        reference values. However, individual crew may have different actual max
+        values based on traits/upgrades.
+        
+        Data Source: Analyzed from game_20260605_1841.xml save file (6 crew sample)
+        Last Updated: 2026-06-06
+        
+        Notes:
+        - Health: Can range from 80-140+ (varies by character traits/upgrades)
+        - Food: Appears to cap at 100 (standard satiation limit)
+        - Rest: Can exceed 100 (168 observed - possibly over-rested/fatigue system)
+        - Mood: Can range 0-110+ (mood boosts can exceed base 100)
+        - Oxygen: 0 when inside ship with life support (not a percentage)
+        - Temperature: 100 = comfortable (likely not a percentage, but comfort level)
+        - Energy: Not yet observed in data (may be added in future updates)
+        - Comfort: Observed up to 100 (likely caps at 100)
+        
+        IMPORTANT: These are REFERENCE values, not hard caps. Individual crew
+        members may have higher or lower actual maximums. For accurate percentage
+        calculation, would need to parse individual character max values from
+        save file if available.
+    -->
+    <crewVitalMaxValues>
+        <vital>
+            <stat>Health</stat>
+            <baseMax>100</baseMax>
+            <observedMax>140</observedMax>
+            <notes>Base health is 100, but can be increased by traits, cybernetics, and medical upgrades. Values above 100 indicate enhanced characters.</notes>
+        </vital>
+        <vital>
+            <stat>Food</stat>
+            <baseMax>100</baseMax>
+            <observedMax>100</observedMax>
+            <notes>Food/satiation appears to cap at 100. All observed crew at exactly 100 suggests recent meal or auto-feeding.</notes>
+        </vital>
+        <vital>
+            <stat>Rest</stat>
+            <baseMax>100</baseMax>
+            <observedMax>168</observedMax>
+            <notes>Energy stat (displayed in-game as "Energy", stored in XML as &lt;Rest&gt;). Can exceed 100 (over-energized state). Values above 100 may indicate extended rest or energy bonuses from facilities/traits.</notes>
+        </vital>
+        <vital>
+            <stat>Mood</stat>
+            <baseMax>100</baseMax>
+            <observedMax>110</observedMax>
+            <notes>Mood can be boosted above 100 through positive events, traits, or environment bonuses.</notes>
+        </vital>
+        <vital>
+            <stat>Oxygen</stat>
+            <baseMax>1000</baseMax>
+            <observedMax>994</observedMax>
+            <notes>Uses 'oxs' attribute (oxygen suit/storage), NOT 'v' attribute. Value out of 1000 max. oxs=0 means crew is breathing ship air (inside pressurized area). oxs=970-1000 means crew has personal oxygen reserve in spacesuit/tank. Observed: Player ship crew all have oxs=0 (breathing ship air), station crew have oxs=970-994 (possibly in spacesuits or unpressurized areas).</notes>
+        </vital>
+        <vital>
+            <stat>Temperature</stat>
+            <baseMax>100</baseMax>
+            <observedMax>100</observedMax>
+            <notes>All crew at 100 = comfortable temperature. Values would change in extreme heat/cold environments.</notes>
+        </vital>
+        <vital>
+            <stat>Comfort</stat>
+            <baseMax>100</baseMax>
+            <observedMax>100</observedMax>
+            <notes>Comfort level based on environment quality. Likely caps at 100.</notes>
+        </vital>
+        <vital>
+            <stat>Energy</stat>
+            <baseMax>100</baseMax>
+            <observedMax>null</observedMax>
+            <notes>Energy stat not observed in current save file. May be added in future game versions or specific scenarios.</notes>
+        </vital>
+    </crewVitalMaxValues>
 </mappings>

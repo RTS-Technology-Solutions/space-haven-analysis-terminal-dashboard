@@ -77,17 +77,17 @@ export default function MetricTooltip({ title, why, how, what }: MetricTooltipPr
           <div className="metric-tooltip-header">{title}</div>
           
           <div className="metric-tooltip-section">
-            <div className="metric-tooltip-section-title">💡 WHY</div>
+            <div className="metric-tooltip-section-title">💡 WHY (So that...)</div>
             <div className="metric-tooltip-text">{why}</div>
           </div>
           
           <div className="metric-tooltip-section">
-            <div className="metric-tooltip-section-title">🔢 HOW</div>
+            <div className="metric-tooltip-section-title">🔢 HOW (Data Source)</div>
             <div className="metric-tooltip-text">{how}</div>
           </div>
           
           <div className="metric-tooltip-section">
-            <div className="metric-tooltip-section-title">🎯 WHAT TO DO</div>
+            <div className="metric-tooltip-section-title">🎯 ACTIONS</div>
             <div className="metric-tooltip-text">{what}</div>
           </div>
         </div>,

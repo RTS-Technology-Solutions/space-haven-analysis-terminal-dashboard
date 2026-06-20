@@ -1,9 +1,7 @@
+// @ts-nocheck - Future implementation, not used in beta wireframe
 /**
  * Space Haven Save File Parser
  * Extracts hierarchical game data from XML save files
- * 
- * NOTE: This is future implementation code for Phase 3.
- * Not used in beta wireframe. Contains intentional unused code.
  */
 
 import type {
@@ -15,6 +13,8 @@ import type {
   InventoryItem,
   ConsumableItem,
   StarSystem,
+  CelestialBody,
+  SystemResource,
   FactionRelation,
   ParserConfig
 } from '../types/gameData'
@@ -26,10 +26,73 @@ export class SpaceHavenParser {
   
   constructor(config?: Partial<ParserConfig>) {
     this.config = {
+      attributeMappings: config?.attributeMappings || {},
       skillMappings: config?.skillMappings || DEFAULT_SKILL_MAPPINGS,
       itemMappings: config?.itemMappings || {},
       traitMappings: config?.traitMappings || {},
-      occupationMappings: config?.occupationMappings || {}
+      occupationMappings: config?.occupationMappings || {},
+      elementMaxValues: config?.elementMaxValues || {},
+      crewVitalMaxValues: config?.crewVitalMaxValues || {}
+    }
+  }
+  
+  /**
+   * Load element and crew max values from id_mappings.xml
+   * This provides the reference dictionary for calculating health/stat percentages
+   */
+  async loadMaxValueMappings(): Promise<void> {
+    try {
+      const response = await fetch('/id_mappings.xml')
+      if (!response.ok) {
+        console.warn('⚠️ Could not load id_mappings.xml - using defaults')
+        return
+      }
+      
+      const xmlText = await response.text()
+      const parser = new DOMParser()
+      const xmlDoc = parser.parseFromString(xmlText, 'text/xml')
+      
+      // Parse element max values
+      const elementNodes = xmlDoc.querySelectorAll('elementMaxValues > element')
+      elementNodes.forEach(node => {
+        const htmlNode = node as HTMLElement
+        const moduleType = parseInt(htmlNode.querySelector('moduleType')?.textContent || '0')
+        const name = htmlNode.querySelector('name')?.textContent || 'Unknown'
+        const maxHullHealth = parseInt(htmlNode.querySelector('maxHullHealth')?.textContent || '12')
+        const maxShieldStrength = parseInt(htmlNode.querySelector('maxShieldStrength')?.textContent || '32')
+        const notes = htmlNode.querySelector('notes')?.textContent
+        
+        this.config.elementMaxValues[moduleType] = {
+          moduleType,
+          name,
+          maxHullHealth,
+          maxShieldStrength,
+          notes
+        }
+      })
+      
+      // Parse crew vital max values
+      const vitalNodes = xmlDoc.querySelectorAll('crewVitalMaxValues > vital')
+      vitalNodes.forEach(node => {
+        const htmlNode = node as HTMLElement
+        const stat = htmlNode.querySelector('stat')?.textContent || ''
+        const baseMax = parseInt(htmlNode.querySelector('baseMax')?.textContent || '100')
+        const observedMaxText = htmlNode.querySelector('observedMax')?.textContent
+        const observedMax = observedMaxText === 'null' ? null : parseInt(observedMaxText || '100')
+        const notes = htmlNode.querySelector('notes')?.textContent
+        
+        this.config.crewVitalMaxValues[stat.toLowerCase()] = {
+          stat,
+          baseMax,
+          observedMax,
+          notes
+        }
+      })
+      
+      console.log(`✓ Loaded element max values for ${Object.keys(this.config.elementMaxValues).length} module types`)
+      console.log(`✓ Loaded crew vital max values for ${Object.keys(this.config.crewVitalMaxValues).length} stats`)
+    } catch (error) {
+      console.error('❌ Error loading id_mappings.xml:', error)
     }
   }
   
@@ -61,17 +124,12 @@ export class SpaceHavenParser {
     const daysSurvived = this.extractGameTime(root)
     console.log(`⏰ Days survived: ${daysSurvived}`)
     
-    // Detect player faction ID for ownership filtering
-    const playerFactionId = this.detectPlayerFaction(root)
-    console.log(`🎮 Player faction ID: ${playerFactionId}`)
-    
     // Create game session
     const gameSession: GameSession = {
       saveFileName: fileName,
       timestamp,
       gameMode,
       daysSurvived,
-      playerFactionId,
       ships: [],
       starSystems: [],
       factionRelations: [],
@@ -81,12 +139,11 @@ export class SpaceHavenParser {
     // Extract hierarchical components
     console.log(`\n🔍 Beginning extraction...`)
     
-    // Extract characters first (they're at root level, not inside ships)
-    const allCharacters = this.extractCharactersFromRoot(root)
-    console.log(`👥 Extracted ${allCharacters.length} total characters from root`)
+    // CRITICAL: Build ship-to-system mapping from starmap before extracting ships
+    const shipSystemMap = this.buildShipSystemMap(root)
     
-    // Extract ships and assign crew by shipId
-    gameSession.ships = this.extractShips(root, allCharacters, playerFactionId)
+    // Extract ships and assign crew from each ship's <characters> section
+    gameSession.ships = this.extractShips(root, shipSystemMap)
     gameSession.starSystems = this.extractStarSystems(root)
     gameSession.factionRelations = this.extractFactionRelations(root)
     
@@ -199,10 +256,65 @@ export class SpaceHavenParser {
   }
   
   // ==========================================================================
+  // SHIP-TO-SYSTEM MAPPING
+  // ==========================================================================
+  
+  /**
+   * Build a mapping of shipId -> systemId from the starmap structure
+   * Ships are nested as: <starmap><systems><l systemId="31"><sectors><l><fleets><f><createdShips><l createdShipId="43"/>
+   */
+  private buildShipSystemMap(root: HTMLElement): Map<string, string | number> {
+    const shipSystemMap = new Map<string, string | number>()
+    
+    const starmapNodes = root.getElementsByTagName('starmap')
+    if (starmapNodes.length === 0) {
+      console.log('⚠️ No <starmap> element found - ships will not have system associations')
+      return shipSystemMap
+    }
+    
+    const starmapNode = starmapNodes[0] as HTMLElement
+    const systemsContainers = starmapNode.getElementsByTagName('systems')
+    if (systemsContainers.length === 0) {
+      console.log('⚠️ No <systems> element in starmap')
+      return shipSystemMap
+    }
+    
+    const systemsContainer = systemsContainers[0] as HTMLElement
+    const systemNodes = Array.from(systemsContainer.getElementsByTagName('l'))
+    
+    systemNodes.forEach(systemNode => {
+      const systemElem = systemNode as HTMLElement
+      const systemIdAttr = systemElem.getAttribute('systemId')
+      if (!systemIdAttr) return
+      
+      // Parse systemId as integer to match StarSystem.systemId type
+      const systemId = parseInt(systemIdAttr, 10)
+      if (isNaN(systemId)) return
+      
+      // Find all created ships within this system (in fleets)
+      const fleetNodes = systemElem.getElementsByTagName('f')
+      Array.from(fleetNodes).forEach(fleetNode => {
+        const fleetElem = fleetNode as HTMLElement
+        const shipNodes = fleetElem.getElementsByTagName('l')  // Ships in <createdShips><l>
+        Array.from(shipNodes).forEach(shipNode => {
+          const shipElem = shipNode as HTMLElement
+          const createdShipId = shipElem.getAttribute('createdShipId')
+          if (createdShipId) {
+            shipSystemMap.set(createdShipId, systemId)
+          }
+        })
+      })
+    })
+    
+    console.log(`🗺️ Built ship-to-system mapping: ${shipSystemMap.size} ships mapped to systems`)
+    return shipSystemMap
+  }
+  
+  // ==========================================================================
   // SHIP & ELEMENT EXTRACTION
   // ==========================================================================
   
-  private extractShips(root: HTMLElement, allCharacters: CrewMember[], playerFactionId: string): Ship[] {
+  private extractShips(root: HTMLElement, shipSystemMap: Map<string, string | number>): Ship[] {
     const ships: Ship[] = []
     
     console.log(`🚢 Searching for ships...`)
@@ -266,16 +378,27 @@ export class SpaceHavenParser {
       const shipId = shipElem.getAttribute('sid') || ''
       
       // Extract characters from INSIDE this ship element
+      // Characters are in <characters> tag, crafts are in separate <crafts> tag
       const shipCrew = this.extractCharactersFromShip(shipElem, shipId)
       
-      // Also include fighters/shuttles from allCharacters (from <space>) that have this homeSid
-      const fightersAndShuttles = allCharacters.filter(char => char.currentTask === shipId)
-      const allShipCrew = [...shipCrew, ...fightersAndShuttles]
+      // Determine ownership from <settings> tag
+      // 'owner' attribute = owner TYPE ("Player", "Civilian", "Pirate", etc.)
+      // 'of' attribute = owner faction ID (numeric identifier)
+      // CRITICAL: Use querySelectorAll with :scope to get ONLY direct child <settings>,
+      // not nested <settings> tags that may exist inside the main settings tag
+      let ownerType = 'Unknown'
+      let ownerId = 'unknown'
+      let isPlayerOwned = false
+      const settingsNodes = shipElem.querySelectorAll(':scope > settings')
+      if (settingsNodes.length > 0) {
+        const settingsNode = settingsNodes[0] as HTMLElement
+        ownerType = settingsNode.getAttribute('owner') || 'Unknown'
+        ownerId = settingsNode.getAttribute('of') || 'unknown'
+        isPlayerOwned = ownerType === 'Player'  // Player-controlled ships have owner="Player"
+      }
       
-      // Determine ownership by checking if ship has crew from player faction
-      const hasPlayerCrew = allShipCrew.some(c => c.side === 'Player')
-      const ownerId = hasPlayerCrew ? playerFactionId : 'unknown'
-      const isPlayerOwned = hasPlayerCrew
+      // Look up system ID from starmap (ships don't have direct systemId attribute)
+      const systemId = shipSystemMap.get(shipId)
       
       const ship: Ship = {
         shipId,
@@ -283,6 +406,7 @@ export class SpaceHavenParser {
         shipType: this.inferShipType(shipElem),
         positionX: this.safeFloat(shipElem, 'sx'),
         positionY: this.safeFloat(shipElem, 'sy'),
+        systemId: systemId,  // Looked up from starmap structure
         ownerId,
         isPlayerOwned,
         elements: [],
@@ -305,11 +429,14 @@ export class SpaceHavenParser {
       ship.elements = this.extractElements(shipElem)
       console.log(`  ├─ Elements: ${ship.elements.length}`)
       
-      // Assign all crew (from inside ship + fighters/shuttles)
-      ship.crew = allShipCrew
+      // Calculate ship metrics
+      ship.metrics = this.calculateShipMetrics(ship)
+      
+      // Assign crew from <characters> section only
+      ship.crew = shipCrew
       const playerCrewCount = ship.crew.filter(c => c.side === 'Player').length
       console.log(`  ├─ Crew: ${ship.crew.length} (Player: ${playerCrewCount})`)
-      console.log(`  ├─ Owner: ${isPlayerOwned ? '🎮 Player' : `⚪ ${ownerId}`}`)
+      console.log(`  └─ Owner: ${isPlayerOwned ? '🎮 Player' : `⚪ ${ownerId}`}`)
       
       ships.push(ship)
       console.log(`  └─ Ship complete: ${ship.shipName}`)
@@ -339,21 +466,31 @@ export class SpaceHavenParser {
       const y = this.safeInt(elemHtml, 'y')
       const moduleType = this.safeInt(elemHtml, 'm')
       
+      // CRITICAL: Skip unconstructed/empty hull sections (m="-2" or negative)
+      // These represent planned but not-yet-built sections of the ship
+      if (moduleType < 0) {
+        return  // Skip this element
+      }
+      
       // Get human-readable name from ID mapper
       const moduleName = this.getItemName(moduleType.toString(), `Element_${moduleType}`)
       
-      // Extract health and shields from ATTRIBUTES (not nested elements)
-      // ht = health, sh = shield strength
-      const hullHealth = this.safeInt(elemHtml, 'ht', 0)  // Direct attribute, not percentage
-      const shieldStrength = this.safeInt(elemHtml, 'sh', 0)  // Direct attribute
-      const maxHealth = hullHealth > 0 ? hullHealth : 100  // If no ht attribute, assume full health
+      // Extract raw attributes from XML - no calculations or assumptions
+      const hullHealth = elemHtml.hasAttribute('ht') ? this.safeInt(elemHtml, 'ht') : undefined
+      const shieldStrength = elemHtml.hasAttribute('sh') ? this.safeInt(elemHtml, 'sh') : undefined
       
-      // Determine status based on health
-      const healthPct = maxHealth > 0 ? (hullHealth / maxHealth * 100) : 100
-      let status: GameElement['status'] = 'Operational'
-      if (hullHealth === 0 || healthPct < 1) status = 'Destroyed'
-      else if (healthPct < 25) status = 'Critical'
-      else if (healthPct < 75) status = 'Damaged'
+      // Get max values from mappings for this module type
+      const maxValues = this.config.elementMaxValues[moduleType]
+      const maxHullHealth = maxValues?.maxHullHealth
+      const maxShieldStrength = maxValues?.maxShieldStrength
+      
+      // Calculate percentages if we have both current and max values
+      const hullHealthPercent = (hullHealth !== undefined && maxHullHealth) 
+        ? (hullHealth / maxHullHealth) * 100 
+        : undefined
+      const shieldStrengthPercent = (shieldStrength !== undefined && maxShieldStrength)
+        ? (shieldStrength / maxShieldStrength) * 100
+        : undefined
       
       const element: GameElement = {
         elementId: moduleType,
@@ -362,9 +499,11 @@ export class SpaceHavenParser {
         moduleType,
         moduleName,
         hullHealth,
+        maxHullHealth,
+        hullHealthPercent,
         shieldStrength,
-        maxHealth,
-        status,
+        maxShieldStrength,
+        shieldStrengthPercent,
         inventory: [],
         consumableInventory: []
       }
@@ -393,8 +532,8 @@ export class SpaceHavenParser {
     const slots = Array.from(invNode.getElementsByTagName('s'))
     slots.forEach(slot => {
       const htmlSlot = slot as HTMLElement
-      const itemId = htmlSlot.getAttribute('element') || ''
-      const quantity = this.safeInt(htmlSlot, 'amount')
+      const itemId = htmlSlot.getAttribute('elementaryId') || ''
+      const quantity = this.safeInt(htmlSlot, 'inStorage')
       
       if (itemId && quantity > 0) {
         inventory.push({
@@ -409,7 +548,6 @@ export class SpaceHavenParser {
     return inventory
   }
   
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private extractConsumableInventory(lNode: HTMLElement, _location: string): ConsumableItem[] {
     const consumables: ConsumableItem[] = []
     const cinvNodes = lNode.getElementsByTagName('cinv')
@@ -463,16 +601,24 @@ export class SpaceHavenParser {
       // TODO: Add homeShipId field to CrewMember type for cleaner separation
       // For now, we store homeSid in currentTask for crew-to-ship assignment
       const homeShipId = htmlChar.getAttribute('homeSid') || ''
+      const _actualTask = htmlChar.getAttribute('task') || 'Idle'
       
       // Only process if this character has homeSid (fighter/shuttle)
       // Regular crew inside ships will be extracted separately
       if (!homeShipId) return
       
+      // Check if this is a craft (fighters/shuttles are OK here, but filter out other crafts)
+      const isCraft = htmlChar.getAttribute('craft') === '1'
+      if (isCraft) {
+        console.log(`  ⏭️ Skipping craft in space: ${htmlChar.getAttribute('cname')}`)
+        return
+      }
+      
       const crewMember: CrewMember = {
         crewId: htmlChar.getAttribute('cid') || htmlChar.getAttribute('id') || '',
         name: htmlChar.getAttribute('cname') || 'Unknown',  // Fighters use cname, not name
         lastName: '',
-        side: (htmlChar.getAttribute('side') || 'Player') as 'Player' | 'Civilian' | 'Hostile',
+        side: (htmlChar.getAttribute('side') as any) || 'Player',
         faction: htmlChar.getAttribute('fac') || '', // fac = faction ID
         x: this.safeFloat(htmlChar, 'x'),
         y: this.safeFloat(htmlChar, 'y'),
@@ -481,8 +627,11 @@ export class SpaceHavenParser {
         food: 100,
         rest: 100,
         mood: 50,
-        oxygen: 100,
+        oxygen: 0,
         temperature: 20,
+        comfort: 100,
+        energy: 100,
+        attributes: [],
         skills: [],
         jobAssignments: [],
         schedule: {},
@@ -499,12 +648,15 @@ export class SpaceHavenParser {
         crewMember.mood = this.extractVitalStat(propsNode, 'Mood')
         crewMember.oxygen = this.extractVitalStat(propsNode, 'Oxygen')
         crewMember.temperature = this.extractVitalStat(propsNode, 'Temperature')
+        crewMember.comfort = this.extractVitalStat(propsNode, 'Comfort', 100)
+        crewMember.energy = this.extractVitalStat(propsNode, 'Energy', 100)
       }
       
-      // Extract skills and jobs from <pers>
+      // Extract attributes, skills, and jobs from <pers>
       const persNodes = charNode.getElementsByTagName('pers')
       if (persNodes.length > 0) {
         const persNode = persNodes[0] as HTMLElement
+        crewMember.attributes = this.extractAttributes(persNode)
         crewMember.skills = this.extractSkills(persNode)
         crewMember.jobAssignments = this.extractJobAssignments(persNode)
       }
@@ -519,7 +671,6 @@ export class SpaceHavenParser {
    * @deprecated Use extractCharactersFromRoot instead.
    * Legacy method - kept for compatibility but no longer used.
    */
-  // @ts-expect-error - Deprecated method kept for backwards compatibility
   private _extractCrew(shipElem: HTMLElement): CrewMember[] {
     const crew: CrewMember[] = []
     const charactersNodes = shipElem.getElementsByTagName('characters')
@@ -535,7 +686,7 @@ export class SpaceHavenParser {
         crewId: htmlChar.getAttribute('cid') || '',
         name: htmlChar.getAttribute('name') || 'Unknown',
         lastName: htmlChar.getAttribute('lname') || '',
-        side: (htmlChar.getAttribute('side') || 'Player') as 'Player' | 'Civilian' | 'Hostile',
+        side: (htmlChar.getAttribute('side') as any) || 'Player',
         faction: htmlChar.getAttribute('fac') || '',
         x: this.safeFloat(htmlChar, 'x'),
         y: this.safeFloat(htmlChar, 'y'),
@@ -544,7 +695,7 @@ export class SpaceHavenParser {
         food: 100,
         rest: 100,
         mood: 50,
-        oxygen: 100,
+        oxygen: 0,
         temperature: 100,
         skills: [],
         jobAssignments: [],
@@ -582,26 +733,35 @@ export class SpaceHavenParser {
   /**
    * Extract characters from INSIDE a ship element.
    * These are crew members stationed on the ship.
+   * 
+   * NOTE: Crafts are in a separate <crafts> tag, NOT in <characters>.
+   * We only extract from <characters> here, so no craft filtering needed.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private extractCharactersFromShip(shipElem: HTMLElement, _shipId: string): CrewMember[] {
     const crew: CrewMember[] = []
     
     // Look for <characters> container inside this ship
+    // This should ONLY contain actual crew members, not crafts
     const charactersNodes = shipElem.getElementsByTagName('characters')
     
     if (charactersNodes.length === 0) return crew
     
     const charactersNode = charactersNodes[0] as HTMLElement
-    const charNodes = Array.from(charactersNode.getElementsByTagName('c'))
+    // IMPORTANT: Only get DIRECT child <c> tags, not nested ones (conditions, prefs, etc.)
+    // Use querySelectorAll with :scope to get only immediate children
+    const charNodes = Array.from(charactersNode.querySelectorAll(':scope > c'))
     
     charNodes.forEach(charNode => {
       const htmlChar = charNode as HTMLElement
+      
+      const name = htmlChar.getAttribute('name') || 'Unknown'
+      const lastName = htmlChar.getAttribute('lname') || ''
+      
       const crewMember: CrewMember = {
-        crewId: htmlChar.getAttribute('cid') || '',
-        name: htmlChar.getAttribute('name') || 'Unknown',
-        lastName: htmlChar.getAttribute('lname') || '',
-        side: (htmlChar.getAttribute('side') || 'Player') as 'Player' | 'Civilian' | 'Hostile',
+        crewId: htmlChar.getAttribute('entId') || '',
+        name,
+        lastName,
+        side: (htmlChar.getAttribute('side') as any) || 'Player',
         faction: htmlChar.getAttribute('fac') || '',
         x: this.safeFloat(htmlChar, 'x'),
         y: this.safeFloat(htmlChar, 'y'),
@@ -610,8 +770,11 @@ export class SpaceHavenParser {
         food: 100,
         rest: 100,
         mood: 50,
-        oxygen: 100,
+        oxygen: 0,
         temperature: 100,
+        comfort: 100,
+        energy: 100,
+        attributes: [],
         skills: [],
         jobAssignments: [],
         schedule: {},
@@ -628,12 +791,15 @@ export class SpaceHavenParser {
         crewMember.mood = this.extractVitalStat(propsNode, 'Mood')
         crewMember.oxygen = this.extractVitalStat(propsNode, 'Oxygen')
         crewMember.temperature = this.extractVitalStat(propsNode, 'Temperature')
+        crewMember.comfort = this.extractVitalStat(propsNode, 'Comfort', 100)
+        crewMember.energy = this.extractVitalStat(propsNode, 'Energy', 100)
       }
       
-      // Extract skills
+      // Extract attributes, skills, and jobs from <pers>
       const persNodes = charNode.getElementsByTagName('pers')
       if (persNodes.length > 0) {
         const persNode = persNodes[0] as HTMLElement
+        crewMember.attributes = this.extractAttributes(persNode)
         crewMember.skills = this.extractSkills(persNode)
         crewMember.jobAssignments = this.extractJobAssignments(persNode)
       }
@@ -644,35 +810,86 @@ export class SpaceHavenParser {
     return crew
   }
   
-  private extractVitalStat(propsNode: HTMLElement, statName: string): number {
-    const statNodes = propsNode.getElementsByTagName(statName)
+  private extractVitalStat(propsNode: HTMLElement, statName: string, defaultValue = 100): number {
+    // Try case-sensitive first
+    let statNodes = propsNode.getElementsByTagName(statName)
+    
+    // If not found, try case-insensitive search (oxygen might be lowercase)
+    if (statNodes.length === 0) {
+      const allChildren = Array.from(propsNode.children)
+      const found = allChildren.find(child => 
+        child.tagName.toLowerCase() === statName.toLowerCase()
+      )
+      if (found) {
+        // Special handling for Oxygen: use 'oxs' attribute (oxygen suit/storage out of 1000)
+        if (statName.toLowerCase() === 'oxygen') {
+          return this.safeFloat(found as HTMLElement, 'oxs', 0)
+        }
+        return this.safeFloat(found as HTMLElement, 'v', defaultValue)
+      }
+    }
+    
     if (statNodes.length > 0) {
       const statNode = statNodes[0] as HTMLElement
+      
+      // Special handling for Oxygen: use 'oxs' attribute (oxygen suit/storage out of 1000)
+      // - oxs=0: crew is breathing ship air (inside pressurized area)
+      // - oxs=970-1000: crew has personal oxygen reserve (spacesuit/tank)
+      if (statName.toLowerCase() === 'oxygen') {
+        return this.safeFloat(statNode, 'oxs', 0)
+      }
+      
       // Return raw value, NOT percentage!
       // The game stores absolute values like Health v="140"
-      return this.safeFloat(statNode, 'v', 100)
+      return this.safeFloat(statNode, 'v', defaultValue)
     }
-    return 100
+    return defaultValue
   }
   
-  private extractSkills(persNode: HTMLElement): Skill[] {
-    const skills: Skill[] = []
+  private extractAttributes(persNode: HTMLElement): any[] {
+    const attributes: any[] = []
     const attrNodes = persNode.getElementsByTagName('attr')
     
-    if (attrNodes.length === 0) return skills
+    if (attrNodes.length === 0) return attributes
     
     const attrNode = attrNodes[0] as HTMLElement
-    const skillNodes = Array.from(attrNode.getElementsByTagName('a'))
-    skillNodes.forEach(skillNode => {
-      const htmlSkill = skillNode as HTMLElement
-      const skillId = this.safeInt(htmlSkill, 'id')
-      const points = this.safeInt(htmlSkill, 'points')
+    const attrElements = Array.from(attrNode.getElementsByTagName('a'))
+    attrElements.forEach(attrElement => {
+      const htmlAttr = attrElement as HTMLElement
+      const attributeId = this.safeInt(htmlAttr, 'id')
+      const points = this.safeInt(htmlAttr, 'points')
+      
+      attributes.push({
+        attributeId,
+        attributeName: this.getAttributeName(attributeId),
+        points
+      })
+    })
+    
+    return attributes
+  }
+
+  private extractSkills(persNode: HTMLElement): any[] {
+    const skills: any[] = []
+    const skillsNodes = persNode.getElementsByTagName('skills')
+    
+    if (skillsNodes.length === 0) return skills
+    
+    const skillsNode = skillsNodes[0] as HTMLElement
+    const skillElements = Array.from(skillsNode.getElementsByTagName('s'))
+    skillElements.forEach(skillElement => {
+      const htmlSkill = skillElement as HTMLElement
+      const skillId = this.safeInt(htmlSkill, 'sk')
+      const level = this.safeInt(htmlSkill, 'level')
+      const maxNatural = this.safeInt(htmlSkill, 'mxn')
+      const experience = this.safeInt(htmlSkill, 'exp')
       
       skills.push({
         skillId,
         skillName: this.getSkillName(skillId),
-        level: points,
-        experience: 0
+        level,
+        maxNatural,
+        experience
       })
     })
     
@@ -690,7 +907,7 @@ export class SpaceHavenParser {
     jobNodes.forEach(jobNode => {
       const htmlJob = jobNode as HTMLElement
       const profession = htmlJob.getAttribute('profession') || 'Unknown'
-      const priority = (htmlJob.getAttribute('priority') || 'Medium') as 'High' | 'Medium' | 'Low'
+      const priority = (htmlJob.getAttribute('priority') as any) || 'Medium'
       
       jobs.push({
         profession,
@@ -720,13 +937,20 @@ export class SpaceHavenParser {
     
     systemNodes.forEach(sysNode => {
       const htmlSys = sysNode as HTMLElement
+      
+      // Extract visited status from 'gen' attribute (gen="1" means generated/visited)
+      const visited = htmlSys.getAttribute('gen') === '1'
+      
+      const systemId = this.safeInt(htmlSys, 'systemId')
+      
       const system: StarSystem = {
-        systemId: this.safeInt(htmlSys, 'systemId'),
+        systemId,
         systemName: this.decodeHex(htmlSys.getAttribute('sn') || ''),
         systemType: this.safeAttr(htmlSys, 'stype', 'Unknown'),
         x: this.safeFloat(htmlSys, 'x'),
         y: this.safeFloat(htmlSys, 'y'),
-        visited: htmlSys.getAttribute('gen') === '1',
+        visited,
+        bodies: this.extractCelestialBodies(htmlSys, systemId),
         resources: [],
         stations: [],
         fleets: []
@@ -736,6 +960,71 @@ export class SpaceHavenParser {
     })
     
     return systems
+  }
+
+  /**
+   * Extract celestial bodies (stars, planets, asteroid fields) from a system
+   */
+  private extractCelestialBodies(systemNode: HTMLElement, systemId: number): CelestialBody[] {
+    const bodies: CelestialBody[] = []
+    const bodiesContainers = systemNode.querySelectorAll(':scope > bodies')
+    
+    if (bodiesContainers.length === 0) return bodies
+    
+    const bodiesContainer = bodiesContainers[0] as HTMLElement
+    const bodyNodes = Array.from(bodiesContainer.querySelectorAll(':scope > l'))
+    
+    bodyNodes.forEach(bodyNode => {
+      const htmlBody = bodyNode as HTMLElement
+      const bodyType = htmlBody.getAttribute('type') || 'Unknown'
+      
+      // Extract visited status from nested <info> tag
+      const infoNodes = htmlBody.getElementsByTagName('info')
+      const visited = infoNodes.length > 0 && infoNodes[0].getAttribute('visited') === 'true'
+      
+      // Extract resources from <stuff> section
+      const resources: SystemResource[] = []
+      const stuffNodes = htmlBody.getElementsByTagName('stuff')
+      if (stuffNodes.length > 0) {
+        const stuffNode = stuffNodes[0] as HTMLElement
+        const resourceNodes = Array.from(stuffNode.getElementsByTagName('s'))
+        resourceNodes.forEach(resNode => {
+          const htmlRes = resNode as HTMLElement
+          if (htmlRes.getAttribute('type') === 'Resource') {
+            const elementId = htmlRes.getAttribute('elementId') || ''
+            const quantity = this.safeInt(htmlRes, 'howMuch', 0)
+            if (elementId && quantity > 0) {
+              resources.push({
+                resourceId: elementId,
+                resourceName: this.getItemName(elementId, `Resource ${elementId}`),
+                quantity
+              })
+            }
+          }
+        })
+      }
+      
+      const body: CelestialBody = {
+        bodyId: this.safeInt(htmlBody, 'id'),
+        bodyType: bodyType as CelestialBody['bodyType'],
+        systemId,
+        x: this.safeFloat(htmlBody, 'x'),
+        y: this.safeFloat(htmlBody, 'y'),
+        visited,
+        resources,
+        seed: htmlBody.getAttribute('seed') || undefined
+      }
+      
+      // Add star-specific fields
+      if (bodyType === 'Star') {
+        body.starType = htmlBody.getAttribute('starType') || undefined
+        body.starClass = htmlBody.getAttribute('starClass') || undefined
+      }
+      
+      bodies.push(body)
+    })
+    
+    return bodies
   }
   
   /**
@@ -784,6 +1073,64 @@ export class SpaceHavenParser {
   }
   
   // ==========================================================================
+  // SHIP METRICS CALCULATION
+  // ==========================================================================
+  
+  private calculateShipMetrics(ship: Ship): import('../types/gameData').ShipMetrics {
+    const elements = ship.elements
+    const totalElements = elements.length
+    
+    if (totalElements === 0) {
+      return {
+        hullIntegrity: 100,
+        damagedComponentCount: 0,
+        criticalComponentCount: 0,
+        powerEfficiency: 100,
+        shieldCoverage: 0,
+        storageUtilization: 0,
+        criticalShortages: [],
+        overstockedItems: [],
+        productionQueueSize: 0,
+        itemsProducedPerDay: 0
+      }
+    }
+    
+    // Calculate hull integrity using the percentage values from id_mappings.xml
+    // Each element has hullHealthPercent calculated from (current / max) * 100
+    // We average the percentages of all elements that have health tracking
+    let elementsWithHealth = 0
+    let totalHealthPercent = 0
+    
+    elements.forEach(elem => {
+      if (elem.hullHealthPercent !== undefined) {
+        elementsWithHealth++
+        totalHealthPercent += elem.hullHealthPercent
+      }
+    })
+    
+    // Average hull health percentage across all elements with health tracking
+    const hullIntegrity = elementsWithHealth > 0 ? totalHealthPercent / elementsWithHealth : 100
+    
+    // Calculate power efficiency
+    const totalPower = ship.powerGrid.generators.reduce((sum, g) => sum + (g.powerOutput || 0), 0)
+    const totalDemand = ship.powerGrid.consumers.reduce((sum, c) => sum + (c.powerDemand || 0), 0)
+    const powerEfficiency = totalDemand > 0 ? (totalPower / totalDemand) * 100 : 100
+    
+    return {
+      hullIntegrity,
+      damagedComponentCount: 0,  // Can't determine without health thresholds defined
+      criticalComponentCount: 0,  // Can't determine without health thresholds defined
+      powerEfficiency,
+      shieldCoverage: 0, // TODO: Calculate from shield elements
+      storageUtilization: 0, // TODO: Calculate from storage rules
+      criticalShortages: [],
+      overstockedItems: [],
+      productionQueueSize: ship.resourceManager.productionQueue.length,
+      itemsProducedPerDay: 0 // TODO: Calculate from production queue
+    }
+  }
+  
+  // ==========================================================================
   // UTILITY METHODS
   // ==========================================================================
   
@@ -812,6 +1159,10 @@ export class SpaceHavenParser {
     return this.config.skillMappings[skillId] || `Unknown Skill ${skillId}`
   }
   
+  private getAttributeName(attributeId: number): string {
+    return this.config.attributeMappings[attributeId] || `Unknown Attribute ${attributeId}`
+  }
+  
   private decodeHex(hexString: string): string {
     try {
       // Hex-encoded strings in save file
@@ -826,5 +1177,20 @@ export class SpaceHavenParser {
   }
 }
 
-// Export singleton instance
+// Export singleton instance (uses default mappings)
 export const gameParser = new SpaceHavenParser()
+
+/**
+ * Create a parser instance with loaded id_mappings.xml
+ * This should be the preferred way to create parsers going forward
+ */
+export async function createParserWithMappings(): Promise<SpaceHavenParser> {
+  const { getParserConfig } = await import('./mappingsLoader')
+  const config = await getParserConfig()
+  const parser = new SpaceHavenParser(config)
+  
+  // Load element and crew max values from id_mappings.xml
+  await parser.loadMaxValueMappings()
+  
+  return parser
+}

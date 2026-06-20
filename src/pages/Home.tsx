@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import analytics from '../utils/analytics'
 import './Home.css'
 
 export default function Home() {
+  const navigate = useNavigate()
   return (
     <div className="home-container">
       <div className="hero-section">
@@ -26,70 +27,70 @@ export default function Home() {
           </p>
 
           <div className="hero-cta">
-            <Link 
-              to="/dash" 
+            <button 
               className="btn-terminal btn-terminal-lg"
-              onClick={() => analytics.trackEvent('Navigation', 'Click', 'Hero CTA - Launch Dashboard')}
+              onClick={() => {
+                analytics.trackEvent('Navigation', 'Click', 'Hero CTA - Launch Dashboard')
+                navigate('/dash')
+              }}
             >
               LAUNCH DASHBOARD
               <span className="btn-arrow">→</span>
-            </Link>
-            <Link 
-              to="/data" 
+            </button>
+            <button 
               className="btn-terminal btn-terminal-outline btn-terminal-lg"
-              onClick={() => analytics.trackEvent('Navigation', 'Click', 'Hero CTA - Explore Data')}
+              onClick={() => {
+                analytics.trackEvent('Navigation', 'Click', 'Hero CTA - Explore Data')
+                navigate('/data')
+              }}
             >
               EXPLORE DATA
               <span className="btn-arrow">→</span>
-            </Link>
+            </button>
           </div>
         </div>
       </div>
 
       <div className="features-section">
         <div className="feature-grid">
-          <div className="feature-card">
+          <div 
+            className="feature-card feature-available"
+            onClick={() => {
+              analytics.trackEvent('Navigation', 'Click', 'Feature Card - Save File Analysis')
+              navigate('/dash')
+            }}
+            style={{ cursor: 'pointer' }}
+            role="button"
+            tabIndex={0}
+          >
             <div className="feature-icon">📊</div>
             <h3 className="feature-title">Save File Analysis</h3>
             <p className="feature-description">
               Upload your save files and get detailed breakdowns of ships, crew, resources, and station progress.
             </p>
-            <span className="feature-status">Coming June 20, 2026</span>
+            <span className="feature-link">Available Now →</span>
           </div>
 
-          <div className="feature-card feature-available">
+          <div 
+            className="feature-card feature-available"
+            onClick={() => {
+              analytics.trackEvent('Navigation', 'Click', 'Feature Card - Data Dictionary')
+              navigate('/data')
+            }}
+            style={{ cursor: 'pointer' }}
+            role="button"
+            tabIndex={0}
+          >
             <div className="feature-icon">📖</div>
             <h3 className="feature-title">Data Dictionary</h3>
             <p className="feature-description">
               Browse 270+ game object ID mappings, reverse-engineered by the community.
               Searchable and downloadable.
             </p>
-            <Link 
-              to="/data" 
-              className="feature-link"
-              onClick={() => analytics.trackEvent('Navigation', 'Click', 'Feature Card - Data Dictionary')}
-            >
-              Available Now →
-            </Link>
+            <span className="feature-link">Available Now →</span>
           </div>
 
-          <div className="feature-card">
-            <div className="feature-icon">🤖</div>
-            <h3 className="feature-title">AI Insights</h3>
-            <p className="feature-description">
-              Get recommendations on crew optimization, resource management, and station efficiency.
-            </p>
-            <span className="feature-status">Planned Feature</span>
-          </div>
 
-          <div className="feature-card">
-            <div className="feature-icon">📈</div>
-            <h3 className="feature-title">Progress Tracking</h3>
-            <p className="feature-description">
-              Compare save files over time and visualize your station's growth and evolution.
-            </p>
-            <span className="feature-status">Planned Feature</span>
-          </div>
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import Header from './components/Header'
 import CookieConsent from './components/CookieConsent'
 import FeedbackModal from './components/FeedbackModal'
 import Home from './pages/Home'
-import DashboardPage from './pages/DashboardPage'
+import Dashboard from './pages/Dashboard'
 import BetaDashboard from './pages/BetaDashboard'
 import DevDashboard from './pages/DevDashboard'
 import DataPage from './pages/DataPage'
@@ -65,7 +65,7 @@ function App() {
             <>
               <Header onFeedbackClick={() => setIsFeedbackOpen(true)} />
               <main className="main-content">
-                <DashboardPage />
+                <Dashboard />
               </main>
             </>
           } />

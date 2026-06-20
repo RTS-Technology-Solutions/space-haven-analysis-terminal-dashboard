@@ -14,7 +14,6 @@ export const mockGameSession: GameSession = {
   timestamp: new Date('2026-06-04T14:30:00'),
   gameMode: 'Normal',
   daysSurvived: 42,
-  playerFactionId: '0',
   
   ships: [], // Populated below
   starSystems: [],

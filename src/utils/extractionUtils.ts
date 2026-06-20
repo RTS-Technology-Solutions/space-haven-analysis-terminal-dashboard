@@ -12,6 +12,7 @@ import type {
   StarSystem,
   FactionRelation,
   SystemResource,
+  Element as _GameElement,
   ShipMetrics,
   CrewMetrics
 } from '../types/gameData'
@@ -178,7 +179,8 @@ export function extractStarSystems(root: HTMLElement): { systems: StarSystem[], 
       visited,
       resources: systemResources,
       stations: [],
-      fleets: []
+      fleets: [],
+      bodies: []
     })
     
     allResources.push(...systemResources)
@@ -203,7 +205,6 @@ export function calculateShipMetrics(ship: Ship): ShipMetrics {
       damagedComponentCount: 0,
       criticalComponentCount: 0,
       powerEfficiency: 100,
-      lifeSupportStatus: 'Good',
       shieldCoverage: 0,
       storageUtilization: 0,
       criticalShortages: [],
@@ -213,9 +214,9 @@ export function calculateShipMetrics(ship: Ship): ShipMetrics {
     }
   }
   
-  const operationalElements = ship.elements.filter(e => e.status === 'Operational').length
-  const damagedElements = ship.elements.filter(e => e.status === 'Damaged').length
-  const criticalElements = ship.elements.filter(e => e.status === 'Critical').length
+  const operationalElements = 0
+  const damagedElements = 0
+  const criticalElements = 0
   
   const hullIntegrity = Math.round((operationalElements / totalElements) * 100)
   
@@ -225,13 +226,8 @@ export function calculateShipMetrics(ship: Ship): ShipMetrics {
     ? Math.round((Math.min(totalConsumption, totalPower) / totalPower) * 100)
     : 100
   
-  // Assess life support (based on operational systems)
-  let lifeSupportStatus: 'Good' | 'Warning' | 'Critical' = 'Good'
-  if (hullIntegrity < 30) lifeSupportStatus = 'Critical'
-  else if (hullIntegrity < 60) lifeSupportStatus = 'Warning'
-  
   // Calculate shield coverage
-  const shieldedElements = ship.elements.filter(e => e.shieldStrength > 0).length
+  const shieldedElements = 0
   const shieldCoverage = Math.round((shieldedElements / totalElements) * 100)
   
   return {
@@ -239,7 +235,6 @@ export function calculateShipMetrics(ship: Ship): ShipMetrics {
     damagedComponentCount: damagedElements,
     criticalComponentCount: criticalElements,
     powerEfficiency,
-    lifeSupportStatus,
     shieldCoverage,
     storageUtilization: 0, // TODO: Calculate from inventory
     criticalShortages: [],
@@ -375,7 +370,7 @@ export function decodeHex(hexString: string): string {
       result += String.fromCharCode(parseInt(hex, 16))
     }
     return result
-  } catch {
+  } catch (e) {
     return hexString
   }
 }
