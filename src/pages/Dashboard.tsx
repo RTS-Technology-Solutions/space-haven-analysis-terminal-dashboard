@@ -213,7 +213,7 @@ export default function Dashboard() {
       const xmlBlob = new Blob([originalXmlText], { type: 'text/xml' })
       
       // 2. Prepare JSON file
-      const replacer = (_key: string, value: any) => {
+      const replacer = (_key: string, value: unknown) => {
         if (value instanceof Date) {
           return value.toISOString()
         }
@@ -962,7 +962,7 @@ export default function Dashboard() {
               <button
                 onClick={(e) => {
                   e.preventDefault()
-                  const replacer = (_key: string, value: any) => {
+                  const replacer = (_key: string, value: unknown) => {
                     if (value instanceof Date) {
                       return value.toISOString()
                     }

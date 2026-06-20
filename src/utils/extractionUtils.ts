@@ -12,7 +12,6 @@ import type {
   StarSystem,
   FactionRelation,
   SystemResource,
-  Element as _GameElement,
   ShipMetrics,
   CrewMetrics
 } from '../types/gameData'
@@ -370,7 +369,7 @@ export function decodeHex(hexString: string): string {
       result += String.fromCharCode(parseInt(hex, 16))
     }
     return result
-  } catch (e) {
+  } catch {
     return hexString
   }
 }
