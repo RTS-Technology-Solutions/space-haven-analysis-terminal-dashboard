@@ -1,3 +1,13 @@
+---
+project:
+  id: space-haven-analysis-terminal
+  name: Space Haven Analysis Terminal Dashboard
+  date: 2024-11-06
+  status: active
+  tags: [game, AI, utility]
+  priority: medium
+  next_action: None
+---
 # Space Haven Analysis Terminal Dashboard
 This repository contains the code for a dashboard that provides save file analysis for the game Space Haven. The dashboard is custom built, allowing users to easily upload their save files and visualize various aspects of their game progress.
 
